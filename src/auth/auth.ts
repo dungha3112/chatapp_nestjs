@@ -1,3 +1,3 @@
-export interface IAuthService {
+export interface IAuthServices {
   validateUser();
 }
