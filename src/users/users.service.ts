@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { IuserServices } from './user';
-import { CreateUserDetails, LoginUserDetails } from 'src/utils/types';
+import { CreateUserDetails, FindUserParams } from 'src/utils/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/utils/typeorm';
 import { Repository } from 'typeorm';
@@ -28,7 +28,9 @@ export class UsersService implements IuserServices {
     return saveUser;
   }
 
-  async loginUser(userDetails: LoginUserDetails) {
-    throw new Error('Method not implemented.');
+  async findUser(findUserParams: FindUserParams): Promise<User> {
+    const user = await this.userRepository.findOne({ where: findUserParams });
+
+    return user;
   }
 }
