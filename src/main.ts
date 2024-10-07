@@ -1,17 +1,22 @@
-import { NestFactory } from '@nestjs/core';
-import { AppModule } from './app.module';
 import { ValidationPipe } from '@nestjs/common';
-import 'reflect-metadata';
+import { NestFactory } from '@nestjs/core';
+import { TypeormStore } from 'connect-typeorm';
 import * as session from 'express-session';
 import * as passport from 'passport';
+import 'reflect-metadata';
+import { AppModule } from './app.module';
+import { AppDataSource, Session } from './utils/typeorm';
 
 async function bootstrap() {
   const { PORT, COOKIE_SERCET } = process.env;
-
+  await AppDataSource.initialize();
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix('api');
-  app.useGlobalPipes(new ValidationPipe());
 
+  const sessionRepository = AppDataSource.getRepository(Session);
+
+  app.setGlobalPrefix('api');
+  app.enableCors({ origin: ['http://localhost:5174'], credentials: true });
+  app.useGlobalPipes(new ValidationPipe());
   app.use(
     session({
       secret: COOKIE_SERCET,
@@ -20,6 +25,7 @@ async function bootstrap() {
       cookie: {
         maxAge: 8640000, // 1day
       },
+      store: new TypeormStore().connect(sessionRepository),
     }),
   );
 
