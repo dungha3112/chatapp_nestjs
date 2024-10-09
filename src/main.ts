@@ -23,7 +23,7 @@ async function bootstrap() {
       saveUninitialized: true,
       resave: false,
       cookie: {
-        maxAge: 8640000, // 1day
+        maxAge: 86400000, // 1day
       },
       store: new TypeormStore().connect(sessionRepository),
     }),
