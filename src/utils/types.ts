@@ -1,3 +1,6 @@
+import { Request } from 'express';
+import { User } from './typeorm';
+
 export type CreateUserDetails = {
   firstName: string;
   lastName: string;
@@ -20,3 +23,7 @@ export type CreateConversationsParams = {
   email: string;
   message: string;
 };
+
+export interface AuthenticatedRequest extends Request {
+  user: User;
+}
