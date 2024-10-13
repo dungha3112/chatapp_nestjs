@@ -3,6 +3,7 @@ import { NestFactory } from '@nestjs/core';
 import { TypeormStore } from 'connect-typeorm';
 import * as session from 'express-session';
 import * as passport from 'passport';
+import * as morgan from 'morgan';
 import 'reflect-metadata';
 import { AppModule } from './app.module';
 import { AppDataSource, Session } from './utils/typeorm';
@@ -28,6 +29,7 @@ async function bootstrap() {
       store: new TypeormStore().connect(sessionRepository),
     }),
   );
+  app.use(morgan('dev'));
 
   app.use(passport.initialize());
   app.use(passport.session());

@@ -94,4 +94,20 @@ export class ConversationsService implements IConversationsServices {
 
     return updateConversation;
   }
+
+  async findById(id: number): Promise<Conversation | undefined> {
+    const conversation = await this.conversationRepository.findOne({
+      where: { id },
+      relations: ['creator', 'recipient', 'lastMessageSent'],
+    });
+
+    if (!conversation)
+      throw new HttpException('Conversation not found', HttpStatus.BAD_REQUEST);
+
+    return conversation;
+  }
+
+  async save(conversation: Conversation): Promise<Conversation> {
+    return await this.conversationRepository.save(conversation);
+  }
 }

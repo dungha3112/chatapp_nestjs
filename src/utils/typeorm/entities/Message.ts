@@ -3,6 +3,7 @@ import {
   CreateDateColumn,
   Entity,
   ManyToOne,
+  OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { Conversation } from './Conversation';
@@ -22,6 +23,6 @@ export class Message {
   @CreateDateColumn({ name: 'created_at' })
   createdAt: number;
 
-  @ManyToOne(() => User, { createForeignKeyConstraints: false })
+  @OneToOne(() => User, { createForeignKeyConstraints: false })
   author: User;
 }
