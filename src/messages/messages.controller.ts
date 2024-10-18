@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Get,
   Inject,
   Param,
   ParseIntPipe,
@@ -29,6 +30,13 @@ export class MessagesController {
     @Body() { content }: CreateMessageDto,
   ) {
     const params = { user, conversationId, content };
-    const message = await this.messageService.createMessage(params);
+    return await this.messageService.createMessage(params);
+  }
+
+  @Get()
+  async getMessagesByConversationId(
+    @Param('conversationId', ParseIntPipe) conversationId: number,
+  ) {
+    return await this.messageService.getMessageByConversationId(conversationId);
   }
 }

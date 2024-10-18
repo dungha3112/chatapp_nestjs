@@ -13,9 +13,12 @@ export class AuthService implements IAuthServices {
   ) {}
 
   async validateUser(userDetails: ValidateUserDetails): Promise<User | null> {
-    const user = await this.userServices.findUser({
-      email: userDetails.email,
-    });
+    const user = await this.userServices.findUser(
+      {
+        email: userDetails.email,
+      },
+      { selectAll: true },
+    );
 
     if (!user)
       throw new HttpException('Invalid Credentials', HttpStatus.UNAUTHORIZED);

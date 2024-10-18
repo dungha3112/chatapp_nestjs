@@ -10,9 +10,6 @@ export class LocalAuthGuard extends AuthGuard('local') {
     const request: Request = await context.switchToHttp().getRequest();
 
     await super.logIn(request);
-    console.log('------- LocalAuthGuard');
-    console.log(result);
-    console.log('------- LocalAuthGuard end');
 
     return result;
   }

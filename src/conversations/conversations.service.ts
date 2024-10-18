@@ -38,7 +38,7 @@ export class ConversationsService implements IConversationsServices {
     conversationsParams: CreateConversationsParams,
   ): Promise<Conversation> {
     const { email, message: content } = conversationsParams;
-    const recipient = await this.userServices.findUser({ email });
+    const recipient = await this.userServices.findUser({ email: email });
 
     if (!recipient) {
       throw new HttpException(
@@ -67,30 +67,33 @@ export class ConversationsService implements IConversationsServices {
         HttpStatus.BAD_REQUEST,
       );
 
-    const newConversation = await this.conversationRepository.create({
+    const newConversation = this.conversationRepository.create({
       creator,
       recipient,
     });
 
-    const saveConversation =
+    const savedConversation =
       await this.conversationRepository.save(newConversation);
 
     /**
      * create and save message
      */
-    const newMessage = await this.messageRepository.create({
+    const newMessage = this.messageRepository.create({
       content,
-      conversation: saveConversation,
+      conversation: savedConversation,
       author: creator,
     });
+
     const saveMessage = await this.messageRepository.save(newMessage);
 
     /**
      * update last message sent
      */
-    saveConversation.lastMessageSent = saveMessage;
+
+    savedConversation.lastMessageSent = saveMessage;
+
     const updateConversation =
-      await this.conversationRepository.save(saveConversation);
+      await this.conversationRepository.save(savedConversation);
 
     return updateConversation;
   }
@@ -98,16 +101,19 @@ export class ConversationsService implements IConversationsServices {
   async findById(id: number): Promise<Conversation | undefined> {
     const conversation = await this.conversationRepository.findOne({
       where: { id },
-      relations: ['creator', 'recipient', 'lastMessageSent'],
+      relations: [
+        'creator',
+        'recipient',
+        'lastMessageSent',
+        'lastMessageSent.author',
+      ],
     });
-
-    if (!conversation)
-      throw new HttpException('Conversation not found', HttpStatus.BAD_REQUEST);
 
     return conversation;
   }
 
   async save(conversation: Conversation): Promise<Conversation> {
-    return await this.conversationRepository.save(conversation);
+    const conver = await this.conversationRepository.save(conversation);
+    return conver;
   }
 }

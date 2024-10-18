@@ -2,7 +2,6 @@ import {
   Body,
   Controller,
   Get,
-  HttpStatus,
   Inject,
   Post,
   Req,
@@ -15,6 +14,8 @@ import { IuserServices } from 'src/users/user';
 import { instanceToPlain } from 'class-transformer';
 import { AuthenticatedGuard, LocalAuthGuard } from './utils/Guards';
 import { Request, Response } from 'express';
+import { AuthenticatedRequest } from 'src/utils/types';
+import { User } from 'src/utils/typeorm';
 
 @Controller(Routes.AUTH)
 export class AuthController {
@@ -29,13 +30,14 @@ export class AuthController {
 
   @UseGuards(LocalAuthGuard)
   @Post('login')
-  async login(@Res() res: Response, @Req() req: Request) { 
+  async login(@Res() res: Response, @Req() req: Request) {
     return res.send(instanceToPlain(req.user));
   }
 
   @UseGuards(AuthenticatedGuard)
   @Get('status')
-  async status(@Req() req: Request, @Res() res: Response) {
+  async status(@Res() res: Response, @Req() req: Request) {
+    delete (req.user as User).password;
     return res.send(instanceToPlain(req.user));
   }
 

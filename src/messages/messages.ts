@@ -5,4 +5,6 @@ export interface IMessageServices {
   createMessage(
     params: CreateMessageParams,
   ): Promise<{ message: Message; conversation: Conversation }>;
+
+  getMessageByConversationId(id: number): Promise<Message[]>;
 }
