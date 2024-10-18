@@ -25,8 +25,6 @@ export class MessagesService implements IMessageServices {
 
     const conversation =
       await this.conversationsServices.findById(conversationId);
-    if (!conversation)
-      throw new HttpException('Conversation not found', HttpStatus.BAD_REQUEST);
 
     const { creator, recipient } = conversation;
 
@@ -54,8 +52,6 @@ export class MessagesService implements IMessageServices {
 
   async getMessageByConversationId(id: number): Promise<Message[]> {
     const conversation = await this.conversationsServices.findById(id);
-    if (!conversation)
-      throw new HttpException('Conversation not found', HttpStatus.BAD_REQUEST);
 
     const messages = await this.messageRepository.find({
       where: { conversation: { id: id } },

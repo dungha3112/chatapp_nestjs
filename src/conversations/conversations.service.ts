@@ -109,6 +109,8 @@ export class ConversationsService implements IConversationsServices {
       ],
     });
 
+    if (!conversation)
+      throw new HttpException('Conversation not found', HttpStatus.BAD_REQUEST);
     return conversation;
   }
 
