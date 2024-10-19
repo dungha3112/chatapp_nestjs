@@ -47,6 +47,8 @@ export class MessagesService implements IMessageServices {
     const updateConversation =
       await this.conversationsServices.save(conversation);
 
+    delete savedMessage.conversation;
+
     return { message: savedMessage, conversation: updateConversation };
   }
 
@@ -56,6 +58,7 @@ export class MessagesService implements IMessageServices {
     const messages = await this.messageRepository.find({
       where: { conversation: { id: id } },
       relations: ['author'],
+      order: { createdAt: 'DESC' },
     });
 
     return messages;

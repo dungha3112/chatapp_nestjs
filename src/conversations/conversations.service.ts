@@ -106,11 +106,16 @@ export class ConversationsService implements IConversationsServices {
         'recipient',
         'lastMessageSent',
         'lastMessageSent.author',
+        // 'messages',
+        // 'messages.author',
       ],
     });
 
     if (!conversation)
       throw new HttpException('Conversation not found', HttpStatus.BAD_REQUEST);
+    delete conversation.creator.password;
+    delete conversation.recipient.password;
+
     return conversation;
   }
 
