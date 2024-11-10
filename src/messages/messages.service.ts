@@ -49,7 +49,10 @@ export class MessagesService implements IMessageServices {
 
     delete savedMessage.conversation;
 
-    return { message: savedMessage, conversation: updateConversation };
+    return {
+      message: savedMessage,
+      conversation: { ...updateConversation, lastMessageSent: savedMessage },
+    };
   }
 
   async getMessageByConversationId(id: number): Promise<Message[]> {

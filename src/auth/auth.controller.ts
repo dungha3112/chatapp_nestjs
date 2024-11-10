@@ -15,7 +15,6 @@ import { instanceToPlain } from 'class-transformer';
 import { AuthenticatedGuard, LocalAuthGuard } from './utils/Guards';
 import { Request, Response } from 'express';
 import { AuthenticatedRequest } from 'src/utils/types';
-import { User } from 'src/utils/typeorm';
 
 @Controller(Routes.AUTH)
 export class AuthController {
@@ -36,8 +35,8 @@ export class AuthController {
 
   @UseGuards(AuthenticatedGuard)
   @Get('status')
-  async status(@Res() res: Response, @Req() req: Request) {
-    delete (req.user as User).password;
+  async status(@Res() res: Response, @Req() req: AuthenticatedRequest) {
+    // delete (req.user as User).password;
     return res.send(instanceToPlain(req.user));
   }
 
