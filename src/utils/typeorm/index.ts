@@ -1,11 +1,10 @@
-import { configDotenv } from 'dotenv';
 import { DataSource } from 'typeorm';
 import { Conversation } from './entities/Conversation';
 import { Message } from './entities/Message';
 import { Session } from './entities/Session';
 import { User } from './entities/User';
-
-configDotenv({ path: '.env' });
+import * as dotenv from 'dotenv';
+dotenv.config();
 
 export const entities = [User, Session, Conversation, Message];
 

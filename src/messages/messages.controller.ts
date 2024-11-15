@@ -39,13 +39,15 @@ export class MessagesController {
     const response = await this.messageService.createMessage(params);
 
     this.eventEmitter.emit('message.create', response);
-    return res.send(HttpStatus.OK);
+    return res.sendStatus(HttpStatus.OK);
   }
 
   @Get()
   async getMessagesByConversationId(
     @Param('conversationId', ParseIntPipe) conversationId: number,
   ) {
-    return await this.messageService.getMessageByConversationId(conversationId);
+    const messages =
+      await this.messageService.getMessageByConversationId(conversationId);
+    return { id: conversationId, messages };
   }
 }

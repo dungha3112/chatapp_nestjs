@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { User } from './typeorm';
+import { Conversation, Message, User } from './typeorm';
 
 export type CreateUserDetails = {
   firstName: string;
@@ -36,4 +36,9 @@ export type CreateMessageParams = {
   conversationId: number;
   content?: string;
   user: User;
+};
+
+export type CreateMessageResponse = {
+  message: Message;
+  conversation: Conversation;
 };

@@ -2,30 +2,34 @@ import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { TypeormStore } from 'connect-typeorm';
 import * as session from 'express-session';
-import * as passport from 'passport';
 import * as morgan from 'morgan';
+import * as passport from 'passport';
 import 'reflect-metadata';
 import { AppModule } from './app.module';
+import { WebsocketAdapter } from './gateway/gateway.adapter';
 import { AppDataSource, Session } from './utils/typeorm';
+import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
-  const { PORT, COOKIE_SERCET } = process.env;
+  const { PORT, COOKIE_SECRET } = process.env;
   await AppDataSource.initialize();
   const app = await NestFactory.create(AppModule);
 
   const sessionRepository = AppDataSource.getRepository(Session);
+  const adapter = new WebsocketAdapter(app);
 
+  app.useWebSocketAdapter(adapter);
   app.setGlobalPrefix('api');
+  app.use(cookieParser());
   app.enableCors({ origin: ['http://localhost:5173'], credentials: true });
   app.useGlobalPipes(new ValidationPipe());
   app.use(
     session({
-      secret: COOKIE_SERCET,
-      saveUninitialized: true,
+      secret: COOKIE_SECRET,
+      saveUninitialized: false,
       resave: false,
-      cookie: {
-        maxAge: 86400000 * 7, // 7day
-      },
+      cookie: { maxAge: 86400000 * 7 },
+      name: 'CHAT_APP_SESSION_ID',
       store: new TypeormStore().connect(sessionRepository),
     }),
   );

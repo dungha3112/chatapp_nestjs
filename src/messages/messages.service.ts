@@ -47,7 +47,7 @@ export class MessagesService implements IMessageServices {
     const updateConversation =
       await this.conversationsServices.save(conversation);
 
-    delete savedMessage.conversation;
+    // delete savedMessage.conversation;
 
     return {
       message: savedMessage,
