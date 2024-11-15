@@ -18,6 +18,11 @@ export class MessagesService implements IMessageServices {
     private readonly conversationsServices: IConversationsServices,
   ) {}
 
+  /**
+   * createMessage
+   * @param params
+   * @returns
+   */
   async createMessage(
     params: CreateMessageParams,
   ): Promise<{ message: Message; conversation: Conversation }> {
@@ -47,7 +52,7 @@ export class MessagesService implements IMessageServices {
     const updateConversation =
       await this.conversationsServices.save(conversation);
 
-    // delete savedMessage.conversation;
+    delete savedMessage.conversation;
 
     return {
       message: savedMessage,
@@ -55,6 +60,11 @@ export class MessagesService implements IMessageServices {
     };
   }
 
+  /**
+   * // getMessageByConversationId
+   * @param id
+   * @returns
+   */
   async getMessageByConversationId(id: number): Promise<Message[]> {
     const conversation = await this.conversationsServices.findById(id);
 

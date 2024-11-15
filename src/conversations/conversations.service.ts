@@ -19,6 +19,11 @@ export class ConversationsService implements IConversationsServices {
     @Inject(Services.USERS) private readonly userServices: IuserServices,
   ) {}
 
+  /**
+   * getConversations
+   * @param id
+   * @returns
+   */
   async getConversations(id: number): Promise<Conversation[]> {
     const conversations = await this.conversationRepository
       .createQueryBuilder('conversation')
@@ -33,6 +38,12 @@ export class ConversationsService implements IConversationsServices {
     return conversations;
   }
 
+  /**
+   * createConversation
+   * @param creator
+   * @param conversationsParams
+   * @returns
+   */
   async createConversation(
     creator: User,
     conversationsParams: CreateConversationsParams,
@@ -75,9 +86,7 @@ export class ConversationsService implements IConversationsServices {
     const savedConversation =
       await this.conversationRepository.save(newConversation);
 
-    /**
-     * create and save message
-     */
+    // create and save message
     const newMessage = this.messageRepository.create({
       content,
       conversation: savedConversation,
@@ -86,10 +95,7 @@ export class ConversationsService implements IConversationsServices {
 
     const saveMessage = await this.messageRepository.save(newMessage);
 
-    /**
-     * update last message sent
-     */
-
+    // update last message sent
     savedConversation.lastMessageSent = saveMessage;
 
     const updateConversation =
@@ -98,6 +104,11 @@ export class ConversationsService implements IConversationsServices {
     return updateConversation;
   }
 
+  /**
+   * findById
+   * @param id
+   * @returns
+   */
   async findById(id: number): Promise<Conversation | undefined> {
     const conversation = await this.conversationRepository.findOne({
       where: { id },
@@ -119,6 +130,11 @@ export class ConversationsService implements IConversationsServices {
     return conversation;
   }
 
+  /**
+   * // save conversation
+   * @param conversation
+   * @returns
+   */
   async save(conversation: Conversation): Promise<Conversation> {
     const conver = await this.conversationRepository.save(conversation);
     return conver;

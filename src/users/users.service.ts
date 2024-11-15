@@ -16,6 +16,11 @@ export class UsersService implements IuserServices {
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
 
+  /**
+   * // createUser
+   * @param userDetails
+   * @returns
+   */
   async createUser(userDetails: CreateUserDetails): Promise<User> {
     const userExist = await this.userRepository.findOne({
       where: { email: userDetails.email },
@@ -32,6 +37,12 @@ export class UsersService implements IuserServices {
     return saveUser;
   }
 
+  /**
+   * // findUser
+   * @param findUserParams
+   * @param options
+   * @returns
+   */
   async findUser(
     findUserParams: FindUserParams,
     options?: FindUserOptions,
