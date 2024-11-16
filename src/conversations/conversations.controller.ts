@@ -14,6 +14,7 @@ import { IConversationsServices } from './conversations';
 import { CreateConversationDto } from './dtos/CreateConversation.dto';
 import { AuthUser } from 'src/utils/decorators';
 import { Conversation, User } from 'src/utils/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @UseGuards(AuthenticatedGuard)
 @Controller(Routes.CONVERSATIONS)
@@ -21,6 +22,8 @@ export class ConversationsController {
   constructor(
     @Inject(Services.CONVERSATIONS)
     private readonly conversationServices: IConversationsServices,
+
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Post()
@@ -32,6 +35,8 @@ export class ConversationsController {
       creator,
       conversationParams,
     );
+
+    this.eventEmitter.emit('conversation.create', conversation);
 
     return conversation;
   }
