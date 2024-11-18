@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   HttpStatus,
   Inject,
@@ -49,5 +50,15 @@ export class MessagesController {
     const messages =
       await this.messageService.getMessageByConversationId(conversationId);
     return { id: conversationId, messages };
+  }
+
+  @Delete('/:messageId')
+  async deleteConversationId(
+    @AuthUser() user: User,
+    @Param('conversationId', ParseIntPipe) conversationId: number,
+    @Param('messageId', ParseIntPipe) messageId: number,
+  ) {
+    const params = { userId: user.id, conversationId, messageId };
+    const res = await this.messageService.deleteMessage(params);
   }
 }

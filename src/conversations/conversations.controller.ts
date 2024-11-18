@@ -8,13 +8,13 @@ import {
   Post,
   UseGuards,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
-import { IConversationsServices } from './conversations';
-import { CreateConversationDto } from './dtos/CreateConversation.dto';
 import { AuthUser } from 'src/utils/decorators';
 import { Conversation, User } from 'src/utils/typeorm';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IConversationsServices } from './conversations';
+import { CreateConversationDto } from './dtos/CreateConversation.dto';
 
 @UseGuards(AuthenticatedGuard)
 @Controller(Routes.CONVERSATIONS)

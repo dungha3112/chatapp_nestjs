@@ -24,6 +24,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       password: process.env.MYSQL_DB_PASSWORD,
       database: process.env.MYSQL_DB_DATABASE,
       synchronize: true,
+      // logging: true,
       entities: entities,
     }),
     ConversationsModule,

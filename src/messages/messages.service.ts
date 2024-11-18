@@ -4,7 +4,7 @@ import { instanceToPlain } from 'class-transformer';
 import { IConversationsServices } from 'src/conversations/conversations';
 import { Services } from 'src/utils/constants';
 import { Conversation, Message } from 'src/utils/typeorm';
-import { CreateMessageParams } from 'src/utils/types';
+import { CreateMessageParams, DeleteMessageParams } from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IMessageServices } from './messages';
 
@@ -75,5 +75,65 @@ export class MessagesService implements IMessageServices {
     });
 
     return messages;
+  }
+
+  /**
+   * delete message
+   * @param params
+   */
+  async deleteMessage(params: DeleteMessageParams) {
+    const { conversationId, messageId, userId } = params;
+
+    const conversation =
+      await this.conversationsServices.findById(conversationId);
+
+    const message = await this.messageRepository.findOne({
+      where: {
+        id: messageId,
+        author: { id: userId },
+        conversation: { id: conversationId },
+      },
+    });
+
+    if (!message) {
+      throw new HttpException(
+        "Message not found or can't delete message",
+        HttpStatus.BAD_REQUEST,
+      );
+    }
+    if (conversation.lastMessageSent.id !== message.id) {
+      await this.messageRepository.delete({ id: messageId });
+    }
+
+    const messagesConversation = await this.messageRepository.find({
+      where: { conversation: { id: conversationId } },
+      order: { id: 'DESC' },
+      take: 2,
+      relations: ['author'],
+    });
+
+    /*
+     *  order: { id: 'DESC' } => lastMessage =messagesConversation[0];
+     * => newLastMessage = messagesConversation[1]
+     */
+    const lastMessage = messagesConversation.at(0);
+    const newLastMessage = messagesConversation.at(1);
+
+    // deleting lastmessage
+    if (conversation.lastMessageSent === null) {
+      conversation.lastMessageSent = null;
+      await this.conversationsServices.save(conversation);
+      await this.messageRepository.delete({ id: messageId });
+    } else {
+      conversation.lastMessageSent = { id: newLastMessage.id } as Message;
+
+      await this.conversationsServices.save(conversation);
+      await this.messageRepository.delete({ id: lastMessage.id });
+    }
+
+    return {
+      conversation: { ...conversation, lastMessageSent: newLastMessage },
+      message: newLastMessage,
+    };
   }
 }
