@@ -54,11 +54,14 @@ export class MessagesController {
 
   @Delete('/:messageId')
   async deleteConversationId(
+    @Res() res: Response,
     @AuthUser() user: User,
     @Param('conversationId', ParseIntPipe) conversationId: number,
     @Param('messageId', ParseIntPipe) messageId: number,
   ) {
     const params = { userId: user.id, conversationId, messageId };
-    const res = await this.messageService.deleteMessage(params);
+    const response = await this.messageService.deleteMessage(params);
+    this.eventEmitter.emit('message.delete', response);
+    return res.sendStatus(HttpStatus.OK);
   }
 }
