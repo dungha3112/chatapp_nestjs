@@ -4,7 +4,12 @@ import { instanceToPlain } from 'class-transformer';
 import { IConversationsServices } from 'src/conversations/conversations';
 import { Services } from 'src/utils/constants';
 import { Conversation, Message } from 'src/utils/typeorm';
-import { CreateMessageParams, DeleteMessageParams } from 'src/utils/types';
+import {
+  CreateMessageParams,
+  CreateMessageResponse,
+  DeleteMessageParams,
+  DeleteMessageResponse,
+} from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IMessageServices } from './messages';
 
@@ -25,7 +30,7 @@ export class MessagesService implements IMessageServices {
    */
   async createMessage(
     params: CreateMessageParams,
-  ): Promise<{ message: Message; conversation: Conversation }> {
+  ): Promise<CreateMessageResponse> {
     const { user, conversationId, content } = params;
 
     const conversation =
@@ -81,7 +86,9 @@ export class MessagesService implements IMessageServices {
    * delete message
    * @param params
    */
-  async deleteMessage(params: DeleteMessageParams) {
+  async deleteMessage(
+    params: DeleteMessageParams,
+  ): Promise<DeleteMessageResponse> {
     const { conversationId, messageId, userId } = params;
 
     const conversation =

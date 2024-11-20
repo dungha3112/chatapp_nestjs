@@ -1,12 +1,15 @@
 import { Conversation, Message } from 'src/utils/typeorm';
-import { CreateMessageParams, DeleteMessageParams } from 'src/utils/types';
+import {
+  CreateMessageParams,
+  CreateMessageResponse,
+  DeleteMessageParams,
+  DeleteMessageResponse,
+} from 'src/utils/types';
 
 export interface IMessageServices {
-  createMessage(
-    params: CreateMessageParams,
-  ): Promise<{ message: Message; conversation: Conversation }>;
+  createMessage(params: CreateMessageParams): Promise<CreateMessageResponse>;
 
   getMessageByConversationId(id: number): Promise<Message[]>;
 
-  deleteMessage(params: DeleteMessageParams);
+  deleteMessage(params: DeleteMessageParams): Promise<DeleteMessageResponse>;
 }

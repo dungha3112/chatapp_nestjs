@@ -11,7 +11,7 @@ import {
 import { Server } from 'socket.io';
 import { Services } from 'src/utils/constants';
 import { AuthenticatedSocket } from 'src/utils/interfaces';
-import { CreateMessageResponse } from 'src/utils/types';
+import { CreateMessageResponse, DeleteMessageParams } from 'src/utils/types';
 import { IGatewaySessionManager } from './gateway.session';
 import { Conversation } from 'src/utils/typeorm';
 
@@ -56,7 +56,7 @@ export class MessagingGateway implements OnGatewayConnection {
   handleConversationCreateEvent(payload: Conversation) {
     const recipientSocket = this.sessions.getUserSocket(payload.recipient.id);
     if (recipientSocket)
-      recipientSocket.emit('sendConversationToClientSide', payload);
+      recipientSocket.emit('onConversationCreateToClientSide', payload);
   }
 
   // get socket message.create from messages.controller
@@ -71,9 +71,20 @@ export class MessagingGateway implements OnGatewayConnection {
         ? this.sessions.getUserSocket(conversation.recipient.id)
         : this.sessions.getUserSocket(conversation.creator.id);
 
-    if (authSocket) authSocket.emit('sendMessageToClientSide', payload);
+    if (authSocket) authSocket.emit('onMessageCreateToClientSide', payload);
 
     if (recipientSocket)
-      recipientSocket.emit('sendMessageToClientSide', payload);
+      recipientSocket.emit('onMessageCreateToClientSide', payload);
+  }
+
+  // get socket message.delete from messages.controller
+  // and send socket to client side
+  @OnEvent('message.delete')
+  handleMessageDeleteEvent(payload) {
+    const { userId, conversationId, messageId, recipientId } = payload;
+
+    const recipientSocket = this.sessions.getUserSocket(recipientId);
+    if (recipientSocket)
+      recipientSocket.emit('onMessageDeleteToClientSide', payload);
   }
 }
