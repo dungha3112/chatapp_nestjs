@@ -139,6 +139,7 @@ export class MessagesService implements IMessageServices {
     }
 
     return {
+      userId,
       conversation: { ...conversation, lastMessageSent: newLastMessage },
       message: newLastMessage,
     };

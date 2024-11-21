@@ -11,14 +11,14 @@ import {
   Res,
   UseGuards,
 } from '@nestjs/common';
-import { Routes, Services } from 'src/utils/constants';
-import { IMessageServices } from './messages';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { Response } from 'express';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
+import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
 import { User } from 'src/utils/typeorm';
 import { CreateMessageDto } from './dtos/CreateMessageDto';
-import { EventEmitter2 } from '@nestjs/event-emitter';
-import { Response } from 'express';
+import { IMessageServices } from './messages';
 
 @UseGuards(AuthenticatedGuard)
 @Controller(Routes.MESSAGES)
@@ -61,14 +61,8 @@ export class MessagesController {
   ) {
     const params = { userId: user.id, conversationId, messageId };
     const response = await this.messageService.deleteMessage(params);
-    const { conversation } = response;
 
-    const recipientId =
-      conversation.creator.id === user.id
-        ? conversation.recipient.id
-        : conversation.creator.id;
-
-    this.eventEmitter.emit('message.delete', { ...params, recipientId });
+    this.eventEmitter.emit('message.delete', response);
 
     return { conversationId, messageId };
   }

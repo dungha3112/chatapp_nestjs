@@ -18,7 +18,7 @@ export class WebsocketAdapter extends IoAdapter {
       const { cookie: cookieClient } = socket.handshake.headers;
 
       if (!cookieClient) {
-        console.log(`${socket.user?.email} Client has no cookies`);
+        console.log(`${socket.user} Client has no cookies`);
         return next(new Error('Not Authenticated'));
       }
 

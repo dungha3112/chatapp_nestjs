@@ -60,6 +60,7 @@ export type DeleteMessageParams = {
 
 // DeleteMessageResponse
 export type DeleteMessageResponse = {
+  userId: number;
   message: Message;
   conversation: Conversation;
 };
