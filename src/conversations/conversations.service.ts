@@ -1,7 +1,12 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Conversation, Message, User } from 'src/utils/typeorm';
-import { CreateConversationsParams } from 'src/utils/types';
+import {
+  CreateConversationsParams,
+  DeleteMessageParams,
+  GetConversationMessagesParams,
+  UpdateConversationParams,
+} from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IConversationsServices } from './conversations';
 import { Services } from 'src/utils/constants';
@@ -138,5 +143,40 @@ export class ConversationsService implements IConversationsServices {
   async save(conversation: Conversation): Promise<Conversation> {
     const conver = await this.conversationRepository.save(conversation);
     return conver;
+  }
+
+  /**
+   * getMessages
+   * @param param
+   * @returns
+   */
+
+  async getMessages({
+    id,
+    limit,
+  }: GetConversationMessagesParams): Promise<Conversation> {
+    const conversation = await this.conversationRepository
+      .createQueryBuilder('conversation')
+      .where('id = :id', { id })
+      .leftJoinAndSelect('conversation.lastMessageSent', 'lastMessageSent')
+      .leftJoinAndSelect('conversation.messages', 'message')
+      .where('conversation.id = :id', { id })
+      .orderBy('message.createdAt', 'DESC')
+      .limit(limit)
+      .getOne();
+
+    if (!conversation)
+      throw new HttpException('Conversation not found', HttpStatus.BAD_REQUEST);
+
+    return conversation;
+  }
+
+  /**
+   * update conversation
+   * @param params
+   */
+  async update(params: UpdateConversationParams) {
+    const { id, lastMessageSent } = params;
+    return await this.conversationRepository.update(id, { lastMessageSent });
   }
 }

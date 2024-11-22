@@ -11,5 +11,5 @@ export interface IMessageServices {
 
   getMessageByConversationId(id: number): Promise<Message[]>;
 
-  deleteMessage(params: DeleteMessageParams): Promise<DeleteMessageResponse>;
+  deleteMessage(params: DeleteMessageParams);
 }

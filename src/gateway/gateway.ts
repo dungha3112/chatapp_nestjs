@@ -75,11 +75,17 @@ export class MessagingGateway implements OnGatewayConnection {
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    console.log('onTypingStart ----');
-    console.log(client.rooms);
+    const { conversationId } = data;
+    console.log('onTypingStart ----', { conversationId });
 
-    client.to(data.conversationId).emit('onTypingStartToClientSide');
-    this.server.to(data.conversationId).emit('onTypingStartToClientSide');
+    client.to(conversationId).emit('onTypingStartToClientSide', {
+      conversationId,
+      userId: client.user.id,
+    });
+    this.server.to(conversationId).emit('onTypingStartToClientSide', {
+      conversationId,
+      userId: client.user.id,
+    });
   }
 
   // get emit onTypingStop from client side
@@ -89,11 +95,18 @@ export class MessagingGateway implements OnGatewayConnection {
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    console.log('onTypingStop ----');
-    console.log(client.rooms);
+    const { conversationId } = data;
 
-    client.to(data.conversationId).emit('onTypingStopToClientSide');
-    this.server.to(data.conversationId).emit('onTypingStopToClientSide');
+    console.log(' ---- onTypingStop ----', { conversationId });
+
+    client.to(conversationId).emit('onTypingStopToClientSide', {
+      conversationId,
+      userId: client.user.id,
+    });
+    this.server.to(conversationId).emit('onTypingStopToClientSide', {
+      conversationId,
+      userId: client.user.id,
+    });
   }
 
   // get socket emit conversation.create from convesations.controller
@@ -126,13 +139,16 @@ export class MessagingGateway implements OnGatewayConnection {
   // get socket message.delete from messages.controller
   // and send socket to client side
   @OnEvent('message.delete')
-  handleMessageDeleteEvent(payload: DeleteMessageResponse) {
-    const { conversation, message, userId } = payload;
+  async handleMessageDeleteEvent(payload: DeleteMessageResponse) {
+    const { conversationId, messageId, userId } = payload;
 
-    const recipientId =
-      conversation.creator.id === userId
-        ? conversation.recipient.id
-        : conversation.creator.id;
+    const conversation =
+      await this.conversationServices.findById(conversationId);
+    if (!conversation) return;
+
+    const { creator, recipient } = conversation;
+
+    const recipientId = creator.id === userId ? recipient.id : creator.id;
 
     const recipientSocket = this.sessions.getUserSocket(recipientId);
     if (recipientSocket)

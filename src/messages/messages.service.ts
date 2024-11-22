@@ -86,62 +86,48 @@ export class MessagesService implements IMessageServices {
    * delete message
    * @param params
    */
-  async deleteMessage(
-    params: DeleteMessageParams,
-  ): Promise<DeleteMessageResponse> {
+  async deleteMessage(params: DeleteMessageParams) {
     const { conversationId, messageId, userId } = params;
+    const msgParams = { id: conversationId, limit: 5 };
 
     const conversation =
-      await this.conversationsServices.findById(conversationId);
+      await this.conversationsServices.getMessages(msgParams);
 
     const message = await this.messageRepository.findOne({
-      where: {
-        id: messageId,
-        author: { id: userId },
-        conversation: { id: conversationId },
-      },
+      where: { id: messageId, author: { id: userId } },
     });
-
-    if (!message) {
+    if (!message)
       throw new HttpException(
-        "Message not found or can't delete message",
+        'Message not found or you can not delete',
         HttpStatus.BAD_REQUEST,
       );
-    }
-    if (conversation.lastMessageSent.id !== message.id) {
-      await this.messageRepository.delete({ id: messageId });
-    }
 
-    const messagesConversation = await this.messageRepository.find({
-      where: { conversation: { id: conversationId } },
-      order: { id: 'DESC' },
-      take: 2,
-      relations: ['author'],
-    });
+    if (conversation.lastMessageSent.id !== message.id)
+      return this.messageRepository.delete({ id: message.id });
 
-    /*
-     *  order: { id: 'DESC' } => lastMessage =messagesConversation[0];
-     * => newLastMessage = messagesConversation[1]
-     */
-    const lastMessage = messagesConversation.at(0);
-    const newLastMessage = messagesConversation.at(1);
+    return await this.deleteLastMessage(conversation, message);
+  }
 
-    // deleting lastmessage
-    if (conversation.lastMessageSent === null) {
-      conversation.lastMessageSent = null;
-      await this.conversationsServices.save(conversation);
-      await this.messageRepository.delete({ id: messageId });
+  async deleteLastMessage(conversation: Conversation, message: Message) {
+    const size = conversation.messages.length;
+    const SECOND_MESSAGE_INDEX = 1;
+
+    if (size <= 1) {
+      console.log('Last Message Sent is deleted');
+      await this.conversationsServices.update({
+        id: conversation.id,
+        lastMessageSent: null,
+      });
+      return this.messageRepository.delete({ id: message.id });
     } else {
-      conversation.lastMessageSent = { id: newLastMessage.id } as Message;
+      console.log('There are more than 1 message');
+      const newLastMessage = conversation.messages[SECOND_MESSAGE_INDEX];
+      await this.conversationsServices.update({
+        id: conversation.id,
+        lastMessageSent: newLastMessage,
+      });
 
-      await this.conversationsServices.save(conversation);
-      await this.messageRepository.delete({ id: lastMessage.id });
+      return this.messageRepository.delete({ id: message.id });
     }
-
-    return {
-      userId,
-      conversation: { ...conversation, lastMessageSent: newLastMessage },
-      message: newLastMessage,
-    };
   }
 }

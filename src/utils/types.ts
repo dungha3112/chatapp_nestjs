@@ -61,6 +61,18 @@ export type DeleteMessageParams = {
 // DeleteMessageResponse
 export type DeleteMessageResponse = {
   userId: number;
-  message: Message;
-  conversation: Conversation;
+  messageId: number;
+  conversationId: number;
+};
+
+//UpdateConversationParams
+export type UpdateConversationParams = Partial<{
+  id: number;
+  lastMessageSent: Message;
+}>;
+
+//GetConversationMessagesParams
+export type GetConversationMessagesParams = {
+  id: number;
+  limit: number;
 };
