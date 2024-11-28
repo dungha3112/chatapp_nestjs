@@ -15,6 +15,7 @@ import {
   CreateMessageResponse,
   DeleteMessageParams,
   DeleteMessageResponse,
+  EditMessageResponse,
 } from 'src/utils/types';
 import { IGatewaySessionManager } from './gateway.session';
 import { Conversation } from 'src/utils/typeorm';
@@ -153,5 +154,22 @@ export class MessagingGateway implements OnGatewayConnection {
     const recipientSocket = this.sessions.getUserSocket(recipientId);
     if (recipientSocket)
       recipientSocket.emit('onMessageDeleteToClientSide', payload);
+  }
+
+  // get socket emit message.edit from messages.controller
+  // and send socket to client side
+  @OnEvent('message.edit')
+  async handleMessageEditEvent(payload: EditMessageResponse) {
+    const { conversationId, userId } = payload;
+    const conversation =
+      await this.conversationServices.findById(conversationId);
+    if (!conversation) return;
+
+    const { creator, recipient } = conversation;
+    const recipientId = creator.id === userId ? recipient.id : creator.id;
+    const recipientSocket = this.sessions.getUserSocket(recipientId);
+
+    if (recipientSocket)
+      recipientSocket.emit('onMessageEditToClientSide', payload);
   }
 }

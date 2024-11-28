@@ -7,6 +7,7 @@ import {
   Inject,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
   Res,
   UseGuards,
@@ -16,9 +17,10 @@ import { Response } from 'express';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
-import { User } from 'src/utils/typeorm';
+import { Message, User } from 'src/utils/typeorm';
 import { CreateMessageDto } from './dtos/CreateMessageDto';
 import { IMessageServices } from './messages';
+import { EditMessageDto } from './dtos/EditMessageDto';
 
 @UseGuards(AuthenticatedGuard)
 @Controller(Routes.MESSAGES)
@@ -65,5 +67,20 @@ export class MessagesController {
     this.eventEmitter.emit('message.delete', params);
 
     return { conversationId, messageId };
+  }
+
+  // api/conversations/:conversationId/messages/:messageId
+  @Patch('/:messageId')
+  async editMessage(
+    @AuthUser() { id: userId }: User,
+    @Param('conversationId', ParseIntPipe) conversationId: number,
+    @Param('messageId', ParseIntPipe) messageId: number,
+    @Body() { content }: EditMessageDto,
+  ): Promise<Message> {
+    const params = { userId, conversationId, messageId, content };
+
+    const message = await this.messageService.editMessage(params);
+    this.eventEmitter.emit('message.edit', message);
+    return message;
   }
 }

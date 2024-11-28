@@ -9,6 +9,7 @@ import {
   CreateMessageResponse,
   DeleteMessageParams,
   DeleteMessageResponse,
+  EditMessageParams,
 } from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IMessageServices } from './messages';
@@ -129,5 +130,32 @@ export class MessagesService implements IMessageServices {
 
       return this.messageRepository.delete({ id: message.id });
     }
+  }
+
+  async editMessage(params: EditMessageParams): Promise<Message> {
+    const { content, conversationId, messageId, userId } = params;
+
+    const messageDb = await this.messageRepository.findOne({
+      where: {
+        id: messageId,
+        conversation: { id: conversationId },
+        author: { id: userId },
+      },
+      relations: [
+        'conversation',
+        'conversation.creator',
+        'conversation.recipient',
+        'author',
+      ],
+    });
+
+    if (!messageDb)
+      throw new HttpException(
+        'Message not found or you can not edit message',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    messageDb.content = content;
+    return await this.messageRepository.save(messageDb);
   }
 }

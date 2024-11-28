@@ -9,16 +9,18 @@ import {
 } from 'typeorm';
 import { Conversation } from './Conversation';
 import { User } from './User';
+import { Group } from './Group';
 
 @Entity({ name: 'messages' })
 export class Message {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => Conversation, (conversation) => conversation.messages, {
-    nullable: true,
-  })
+  @ManyToOne(() => Conversation, (conversation) => conversation.messages)
   conversation: Conversation;
+
+  @ManyToOne(() => Group, (group) => group.messages)
+  group: Group;
 
   @Column('text', { nullable: true })
   content: string;

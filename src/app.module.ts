@@ -9,10 +9,11 @@ import { ConversationsModule } from './conversations/conversations.module';
 import { MessagesModule } from './messages/messages.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { GroupModule } from './group/group.module';
 
 @Module({
   imports: [
-    ConfigModule.forRoot({ envFilePath: '.env' }),
+    ConfigModule.forRoot({ envFilePath: '.env', isGlobal: true }),
     AuthModule,
     UsersModule,
     PassportModule.register({ session: true }),
@@ -31,6 +32,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
     MessagesModule,
     GatewayModule,
     EventEmitterModule.forRoot(),
+    GroupModule,
   ],
   controllers: [],
   providers: [],

@@ -76,3 +76,27 @@ export type GetConversationMessagesParams = {
   id: number;
   limit: number;
 };
+
+// EditMessageParams
+export type EditMessageParams = {
+  conversationId: number;
+  userId: number;
+  messageId: number;
+  content: string;
+};
+
+// DeleteMessageResponse
+export type EditMessageResponse = {
+  conversationId: number;
+  userId: number;
+  messageId: number;
+  content: string;
+};
+
+// Group
+// CreateGroupParams
+export type CreateGroupParams = {
+  users: string[];
+  title: string;
+  owner: User;
+};

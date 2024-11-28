@@ -4,6 +4,7 @@ import {
   CreateMessageResponse,
   DeleteMessageParams,
   DeleteMessageResponse,
+  EditMessageParams,
 } from 'src/utils/types';
 
 export interface IMessageServices {
@@ -12,4 +13,6 @@ export interface IMessageServices {
   getMessageByConversationId(id: number): Promise<Message[]>;
 
   deleteMessage(params: DeleteMessageParams);
+
+  editMessage(params: EditMessageParams): Promise<Message>;
 }
