@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  ParseIntPipe,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { Routes, Services } from 'src/utils/constants';
 import { IGroupServices } from '../group';
 import { AuthUser } from 'src/utils/decorators';
@@ -25,5 +34,10 @@ export class GroupController {
   @Get()
   async getGroups(@AuthUser() user: User): Promise<Group[]> {
     return await this.groupServices.getGroups(user.id);
+  }
+
+  @Get('/:groupId')
+  async getGroupById(@Param('groupId', ParseIntPipe) groupId: number) {
+    return await this.groupServices.getGroupById(groupId);
   }
 }

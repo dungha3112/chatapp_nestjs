@@ -1,4 +1,4 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Group } from 'src/utils/typeorm';
 import { CreateGroupParams } from 'src/utils/types';
@@ -47,8 +47,22 @@ export class GroupService implements IGroupServices {
       .where('user.id IN (:users)', { users: [userId] })
       .leftJoinAndSelect('group.owner', 'owner')
       .leftJoinAndSelect('group.users', 'users')
+      .leftJoinAndSelect('group.lastMessageSent', 'lastMessageSent')
       .getMany();
 
     return groups;
+  }
+
+  async getGroupById(id: number): Promise<Group> {
+    const group = await this.groupRepository.findOne({
+      where: { id },
+      relations: ['lastMessageSent', 'owner', 'users', 'messages'],
+    });
+    if (!group)
+      throw new HttpException(
+        'Groups not found with this id',
+        HttpStatus.BAD_REQUEST,
+      );
+    return group;
   }
 }
