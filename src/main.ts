@@ -8,12 +8,13 @@ import 'reflect-metadata';
 import { AppModule } from './app.module';
 import { WebsocketAdapter } from './gateway/gateway.adapter';
 import { AppDataSource, Session } from './utils/typeorm';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const { PORT, COOKIE_SECRET } = process.env;
   await AppDataSource.initialize();
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   const sessionRepository = AppDataSource.getRepository(Session);
   const adapter = new WebsocketAdapter(app);

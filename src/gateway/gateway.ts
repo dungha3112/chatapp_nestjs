@@ -65,6 +65,10 @@ export class MessagingGateway implements OnGatewayConnection {
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
+    console.log('onConversationLeave start');
+    console.log(data);
+    console.log('onConversationLeave end');
+
     client.join(data.conversationId);
     client.to(data.conversationId).emit('userLeaveToClientSide');
   }

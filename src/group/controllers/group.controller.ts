@@ -9,11 +9,12 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { Routes, Services } from 'src/utils/constants';
-import { IGroupServices } from '../group';
+import { IGroupServices } from '../interfaces/group';
 import { AuthUser } from 'src/utils/decorators';
 import { Group, User } from 'src/utils/typeorm';
 import { CreateGroupDto } from '../dtos/CreateGroup.dto';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
+import { CreateMessageDto } from 'src/messages/dtos/CreateMessageDto';
 
 @UseGuards(AuthenticatedGuard)
 @Controller(Routes.GROUPS)

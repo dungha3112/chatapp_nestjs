@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Group } from 'src/utils/typeorm';
 import { CreateGroupParams } from 'src/utils/types';
 import { Repository } from 'typeorm';
-import { IGroupServices } from '../group';
+import { IGroupServices } from '../interfaces/group';
 import { Services } from 'src/utils/constants';
 import { IuserServices } from 'src/users/user';
 
