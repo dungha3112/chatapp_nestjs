@@ -14,7 +14,6 @@ import { AuthUser } from 'src/utils/decorators';
 import { Group, User } from 'src/utils/typeorm';
 import { CreateGroupDto } from '../dtos/CreateGroup.dto';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
-import { CreateMessageDto } from 'src/messages/dtos/CreateMessageDto';
 
 @UseGuards(AuthenticatedGuard)
 @Controller(Routes.GROUPS)
@@ -39,6 +38,6 @@ export class GroupController {
 
   @Get('/:groupId')
   async getGroupById(@Param('groupId', ParseIntPipe) groupId: number) {
-    return await this.groupServices.getGroupById(groupId);
+    return await this.groupServices.findGroupById(groupId);
   }
 }

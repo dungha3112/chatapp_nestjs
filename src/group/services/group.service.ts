@@ -53,10 +53,10 @@ export class GroupService implements IGroupServices {
     return groups;
   }
 
-  async getGroupById(id: number): Promise<Group> {
+  async findGroupById(id: number): Promise<Group> {
     const group = await this.groupRepository.findOne({
       where: { id },
-      relations: ['lastMessageSent', 'owner', 'users', 'messages'],
+      relations: ['lastMessageSent', 'owner', 'users'],
     });
     if (!group)
       throw new HttpException(
@@ -64,5 +64,9 @@ export class GroupService implements IGroupServices {
         HttpStatus.BAD_REQUEST,
       );
     return group;
+  }
+
+  async saveGroup(group: Group): Promise<Group> {
+    return await this.groupRepository.save(group);
   }
 }

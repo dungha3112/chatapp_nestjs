@@ -8,7 +8,6 @@ import {
   CreateMessageParams,
   CreateMessageResponse,
   DeleteMessageParams,
-  DeleteMessageResponse,
   EditMessageParams,
 } from 'src/utils/types';
 import { Repository } from 'typeorm';

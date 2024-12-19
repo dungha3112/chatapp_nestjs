@@ -1,9 +1,8 @@
-import { Conversation, Message } from 'src/utils/typeorm';
+import { Message } from 'src/utils/typeorm';
 import {
   CreateMessageParams,
   CreateMessageResponse,
   DeleteMessageParams,
-  DeleteMessageResponse,
   EditMessageParams,
 } from 'src/utils/types';
 

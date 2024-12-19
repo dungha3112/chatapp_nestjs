@@ -12,6 +12,7 @@ import { Server } from 'socket.io';
 import { Services } from 'src/utils/constants';
 import { AuthenticatedSocket } from 'src/utils/interfaces';
 import {
+  CreateGroupMessageResponse,
   CreateMessageResponse,
   DeleteMessageParams,
   DeleteMessageResponse,
@@ -47,6 +48,11 @@ export class MessagingGateway implements OnGatewayConnection {
     socket.emit('connected', {});
   }
 
+  /**
+   * Conversation
+   * @param data
+   * @param client
+   */
   // get emit onConversationJoin from client side
   // data  : {conversationId: number}
   @SubscribeMessage('onConversationJoin')
@@ -54,8 +60,14 @@ export class MessagingGateway implements OnGatewayConnection {
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    client.join(data.conversationId);
-    client.to(data.conversationId).emit('userJoinToClientSide');
+    console.log(`conversation join`, { data });
+
+    client.join(`conversation-${data.conversationId}`);
+    console.log(client.rooms);
+
+    client
+      .to(`conversation-${data.conversationId}`)
+      .emit('userJoinToClientSide');
   }
 
   // get emit onConversationLeave from client side
@@ -69,8 +81,12 @@ export class MessagingGateway implements OnGatewayConnection {
     console.log(data);
     console.log('onConversationLeave end');
 
-    client.join(data.conversationId);
-    client.to(data.conversationId).emit('userLeaveToClientSide');
+    client.leave(`conversation-${data.conversationId}`);
+    console.log(client.rooms);
+
+    client
+      .to(`conversation-${data.conversationId}`)
+      .emit('userLeaveToClientSide');
   }
 
   // get emit onTypingStart from client side
@@ -175,5 +191,15 @@ export class MessagingGateway implements OnGatewayConnection {
 
     if (recipientSocket)
       recipientSocket.emit('onMessageEditToClientSide', payload);
+  }
+
+  /**
+   * GROUP
+   */
+  // get socket emit group.message.create from group-messages.controoler
+
+  @OnEvent('group.message.create')
+  async handleGroupMessageCreateEvent(payload: CreateGroupMessageResponse) {
+    const { group, message } = payload;
   }
 }

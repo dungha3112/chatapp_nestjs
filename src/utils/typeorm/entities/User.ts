@@ -1,6 +1,13 @@
 import { Exclude } from 'class-transformer';
-import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  Entity,
+  ManyToMany,
+  OneToMany,
+  PrimaryGeneratedColumn,
+} from 'typeorm';
 import { Group } from './Group';
+import { GroupMessage } from './GroupMessage';
 
 @Entity({ name: 'users' })
 export class User {

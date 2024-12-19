@@ -1,5 +1,5 @@
 import { Request } from 'express';
-import { Conversation, Message, User } from './typeorm';
+import { Conversation, Group, GroupMessage, Message, User } from './typeorm';
 
 //CreateUserDetails
 export type CreateUserDetails = {
@@ -27,6 +27,7 @@ export type FindUserOptions = Partial<{
   selectAll?: boolean;
 }>;
 
+// Conversation
 //CreateConversationsParams
 export type CreateConversationsParams = {
   email: string;
@@ -38,6 +39,7 @@ export interface AuthenticatedRequest extends Request {
   user: User;
 }
 
+// Message
 //CreateMessageParams
 export type CreateMessageParams = {
   conversationId: number;
@@ -99,4 +101,17 @@ export type CreateGroupParams = {
   users: string[];
   title: string;
   owner: User;
+};
+
+//CreateGroupMessageParams
+export type CreateGroupMessageParams = {
+  groupId: number;
+  content: string;
+  user: User;
+};
+
+// CreateGroupMessageResponse
+export type CreateGroupMessageResponse = {
+  message: GroupMessage;
+  group: Group;
 };

@@ -25,14 +25,14 @@ export class Conversation {
   @JoinColumn()
   recipient: User;
 
+  @CreateDateColumn({ name: 'created_at' })
+  createdAt: number;
+
   @OneToMany(() => Message, (message) => message.conversation, {
     cascade: ['insert', 'remove', 'update'],
   })
   @JoinColumn()
   messages: Message[];
-
-  @CreateDateColumn({ name: 'created_at' })
-  createdAt: number;
 
   @OneToOne(() => Message)
   @JoinColumn({ name: 'last_message_sent' })

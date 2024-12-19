@@ -6,5 +6,7 @@ export interface IGroupServices {
 
   getGroups(userId: number): Promise<Group[]>;
 
-  getGroupById(id: number): Promise<Group>;
+  findGroupById(id: number): Promise<Group>;
+
+  saveGroup(group: Group): Promise<Group>;
 }

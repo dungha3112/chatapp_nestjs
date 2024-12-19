@@ -1,20 +1,27 @@
 import {
   Body,
   Controller,
+  Get,
   Inject,
   Param,
   ParseIntPipe,
   Post,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateMessageDto } from 'src/messages/dtos/CreateMessageDto';
 import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
-import { User } from 'src/utils/typeorm';
+import { GroupMessage, User } from 'src/utils/typeorm';
+import { CreateGroupMessageResponse } from 'src/utils/types';
+import { IGroupMessageServices } from '../interfaces/group-messages';
 
 @Controller(Routes.GROUPS_MESSAGES)
 export class GroupMessageController {
   constructor(
-    @Inject(Services.GROUPS_MESSAGES) private readonly groupMessageServices,
+    @Inject(Services.GROUPS_MESSAGES)
+    private readonly groupMessageServices: IGroupMessageServices,
+
+    private readonly eventEmtiter: EventEmitter2,
   ) {}
 
   @Post()
@@ -22,8 +29,23 @@ export class GroupMessageController {
     @AuthUser() user: User,
     @Param('groupId', ParseIntPipe) groupId: number,
     @Body() { content }: CreateMessageDto,
-  ) {
-    const params = { id: groupId, userId: user.id, content };
-    console.log('create group message');
+  ): Promise<CreateGroupMessageResponse> {
+    const params = { groupId, user, content };
+
+    //
+    const response = await this.groupMessageServices.createGroupMessage(params);
+
+    this.eventEmtiter.emit('group.message.create', response);
+    return;
+  }
+
+  @Get()
+  async getGroupMessagesById(
+    @Param('groupId', ParseIntPipe) groupId: number,
+  ): Promise<GroupMessage[]> {
+    const messages =
+      await this.groupMessageServices.getGroupMessagesById(groupId);
+
+    return messages;
   }
 }

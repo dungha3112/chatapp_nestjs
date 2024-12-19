@@ -1,13 +1,21 @@
 import * as dotenv from 'dotenv';
-dotenv.config();
 import { DataSource } from 'typeorm';
 import { Conversation } from './entities/Conversation';
+import { GroupMessage } from './entities/GroupMessage';
 import { Group } from './entities/Group';
 import { Message } from './entities/Message';
 import { Session } from './entities/Session';
 import { User } from './entities/User';
+dotenv.config();
 
-export const entities = [User, Session, Conversation, Message, Group];
+export const entities = [
+  User,
+  Session,
+  Conversation,
+  Message,
+  Group,
+  GroupMessage,
+];
 
 export const AppDataSource = new DataSource({
   type: 'mysql',
@@ -20,4 +28,4 @@ export const AppDataSource = new DataSource({
   synchronize: true,
 });
 
-export { Conversation, Group, Message, Session, User };
+export { User, Session, Conversation, Message, Group, GroupMessage };
