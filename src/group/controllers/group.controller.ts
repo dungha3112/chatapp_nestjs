@@ -14,12 +14,14 @@ import { AuthUser } from 'src/utils/decorators';
 import { Group, User } from 'src/utils/typeorm';
 import { CreateGroupDto } from '../dtos/CreateGroup.dto';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @UseGuards(AuthenticatedGuard)
 @Controller(Routes.GROUPS)
 export class GroupController {
   constructor(
     @Inject(Services.GROUPS) private readonly groupServices: IGroupServices,
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Post()
@@ -28,7 +30,10 @@ export class GroupController {
     @Body() groupParams: CreateGroupDto,
   ): Promise<Group> {
     const params = { ...groupParams, owner: user };
-    return await this.groupServices.createGroup(params);
+    const group = await this.groupServices.createGroup(params);
+
+    this.eventEmitter.emit('group.create', group);
+    return group;
   }
 
   @Get()

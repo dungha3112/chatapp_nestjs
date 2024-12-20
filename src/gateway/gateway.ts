@@ -19,7 +19,7 @@ import {
   EditMessageResponse,
 } from 'src/utils/types';
 import { IGatewaySessionManager } from './gateway.session';
-import { Conversation } from 'src/utils/typeorm';
+import { Conversation, Group } from 'src/utils/typeorm';
 import { IConversationsServices } from 'src/conversations/conversations';
 
 @WebSocketGateway({
@@ -78,7 +78,7 @@ export class MessagingGateway implements OnGatewayConnection {
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
     console.log('onConversationLeave start');
-    console.log(data);
+    console.log(client.rooms);
     console.log('onConversationLeave end');
 
     client.leave(`conversation-${data.conversationId}`);
@@ -196,10 +196,24 @@ export class MessagingGateway implements OnGatewayConnection {
   /**
    * GROUP
    */
-  // get socket emit group.message.create from group-messages.controoler
+  // get socket emit group.create from group.controoler
 
+  @OnEvent('group.create')
+  async handleGroupCreateEvent(payload: Group) {
+    console.log('group.create event');
+
+    payload.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      socket && socket.emit(`onGroupCreateToClient`, payload);
+    });
+  }
+
+  // get socket emit group.message.create from group-messages.controoler
   @OnEvent('group.message.create')
   async handleGroupMessageCreateEvent(payload: CreateGroupMessageResponse) {
-    const { group, message } = payload;
+    const { id } = payload.group;
+    console.log('Inside group.message.create');
+
+    this.server.to(`group-${id}`).emit('onGroupMessageToClient', payload);
   }
 }
