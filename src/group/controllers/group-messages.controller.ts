@@ -40,12 +40,10 @@ export class GroupMessageController {
   }
 
   @Get()
-  async getGroupMessagesById(
-    @Param('groupId', ParseIntPipe) groupId: number,
-  ): Promise<GroupMessage[]> {
+  async getGroupMessagesById(@Param('groupId', ParseIntPipe) groupId: number) {
     const messages =
       await this.groupMessageServices.getGroupMessagesById(groupId);
 
-    return messages;
+    return { id: groupId, messages };
   }
 }

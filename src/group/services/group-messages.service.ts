@@ -63,8 +63,6 @@ export class GroupMessageServices implements IGroupMessageServices {
       order: { createdAt: 'DESC' },
     });
 
-    console.log(messages);
-
     return messages;
   }
 }
