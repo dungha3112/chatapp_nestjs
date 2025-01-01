@@ -95,6 +95,7 @@ export class MessagesService implements IMessageServices {
 
     const message = await this.messageRepository.findOne({
       where: { id: messageId, author: { id: userId } },
+      relations: ['conversation', 'author'],
     });
     if (!message)
       throw new HttpException(
@@ -103,9 +104,11 @@ export class MessagesService implements IMessageServices {
       );
 
     if (conversation.lastMessageSent.id !== message.id)
-      return this.messageRepository.delete({ id: message.id });
+      await this.messageRepository.delete({ id: message.id });
 
-    return await this.deleteLastMessage(conversation, message);
+    await this.deleteLastMessage(conversation, message);
+
+    return message;
   }
 
   async deleteLastMessage(conversation: Conversation, message: Message) {

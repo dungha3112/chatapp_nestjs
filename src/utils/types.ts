@@ -62,9 +62,10 @@ export type DeleteMessageParams = {
 
 // DeleteMessageResponse
 export type DeleteMessageResponse = {
+  // messageId: number;
+  // conversationId: number;
   userId: number;
-  messageId: number;
-  conversationId: number;
+  message: Message;
 };
 
 //UpdateConversationParams
@@ -89,10 +90,12 @@ export type EditMessageParams = {
 
 // DeleteMessageResponse
 export type EditMessageResponse = {
-  conversationId: number;
+  // conversationId: number;
+  // messageId: number;
+  // content: string;
   userId: number;
-  messageId: number;
-  content: string;
+
+  message: Message;
 };
 
 // Group

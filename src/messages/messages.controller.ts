@@ -57,14 +57,14 @@ export class MessagesController {
   // api/conversations/:conversationId/messages/:messageId
   @Delete('/:messageId')
   async deleteMessageFromConversation(
-    @AuthUser() user: User,
+    @AuthUser() { id: userId }: User,
     @Param('conversationId', ParseIntPipe) conversationId: number,
     @Param('messageId', ParseIntPipe) messageId: number,
   ) {
-    const params = { userId: user.id, conversationId, messageId };
-    const response = await this.messageService.deleteMessage(params);
+    const params = { userId, conversationId, messageId };
+    const message = await this.messageService.deleteMessage(params);
 
-    this.eventEmitter.emit('message.delete', params);
+    this.eventEmitter.emit('message.delete', { userId, message });
 
     return { conversationId, messageId };
   }
@@ -80,7 +80,7 @@ export class MessagesController {
     const params = { userId, conversationId, messageId, content };
 
     const message = await this.messageService.editMessage(params);
-    this.eventEmitter.emit('message.edit', message);
+    this.eventEmitter.emit('message.edit', { userId, message });
     return message;
   }
 }

@@ -49,9 +49,9 @@ export class MessagingGateway implements OnGatewayConnection {
   }
 
   /**
-   * Conversation
-   * @param data
-   * @param client
+   * --------------------------------------------------------------------------------------------
+   *                                CONVERSATION
+   * --------------------------------------------------------------------------------------------
    */
   // get emit onConversationJoin from client side
   // data  : {conversationId: number}
@@ -89,6 +89,11 @@ export class MessagingGateway implements OnGatewayConnection {
       .emit('userLeaveToClientSide');
   }
 
+  /**
+   * --------------------------------------------------------------------------------------------
+   *                                USER TYPING MESSAGE
+   * --------------------------------------------------------------------------------------------
+   */
   // get emit onTypingStart from client side
   // data  : {conversationId: number}
   @SubscribeMessage('onTypingStart')
@@ -139,6 +144,11 @@ export class MessagingGateway implements OnGatewayConnection {
       recipientSocket.emit('onConversationCreateToClientSide', payload);
   }
 
+  /**
+   * --------------------------------------------------------------------------------------------
+   *                                MESSAGE
+   * --------------------------------------------------------------------------------------------
+   */
   // get socket message.create from messages.controller
   // and send socket to client side
   @OnEvent('message.create')
@@ -161,10 +171,11 @@ export class MessagingGateway implements OnGatewayConnection {
   // and send socket to client side
   @OnEvent('message.delete')
   async handleMessageDeleteEvent(payload: DeleteMessageResponse) {
-    const { conversationId, messageId, userId } = payload;
+    const { message, userId } = payload;
 
-    const conversation =
-      await this.conversationServices.findById(conversationId);
+    const conversation = await this.conversationServices.findById(
+      message.conversation.id,
+    );
     if (!conversation) return;
 
     const { creator, recipient } = conversation;
@@ -173,16 +184,18 @@ export class MessagingGateway implements OnGatewayConnection {
 
     const recipientSocket = this.sessions.getUserSocket(recipientId);
     if (recipientSocket)
-      recipientSocket.emit('onMessageDeleteToClientSide', payload);
+      recipientSocket.emit('onMessageDeleteToClientSide', message);
   }
 
   // get socket emit message.edit from messages.controller
   // and send socket to client side
   @OnEvent('message.edit')
   async handleMessageEditEvent(payload: EditMessageResponse) {
-    const { conversationId, userId } = payload;
-    const conversation =
-      await this.conversationServices.findById(conversationId);
+    const { message, userId } = payload;
+
+    const conversation = await this.conversationServices.findById(
+      message.conversation.id,
+    );
     if (!conversation) return;
 
     const { creator, recipient } = conversation;
@@ -190,14 +203,53 @@ export class MessagingGateway implements OnGatewayConnection {
     const recipientSocket = this.sessions.getUserSocket(recipientId);
 
     if (recipientSocket)
-      recipientSocket.emit('onMessageEditToClientSide', payload);
+      recipientSocket.emit('onMessageEditToClientSide', message);
   }
 
   /**
-   * GROUP
+   * --------------------------------------------------------------------------------------------
+   *                                GROUP
+   * --------------------------------------------------------------------------------------------
    */
-  // get socket emit group.create from group.controoler
 
+  /**
+   * Conversation
+   * @param data
+   * @param client
+   */
+  // get emit onGroupJoin from client side
+  // data  : {groupId: number}
+  @SubscribeMessage('onGroupJoin')
+  onGroupJoin(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    console.log(`onGroupJoin join`, { data });
+
+    client.join(`group-${data.groupId}`);
+    console.log(client.rooms);
+
+    client.to(`conversation-${data.groupId}`).emit('userJoinToClientSide');
+  }
+
+  // get emit onGroupLeave from client side
+  // data  : {groupId: number}
+  @SubscribeMessage('onGroupLeave')
+  onGroupLeave(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    console.log('onGroupLeave start');
+    console.log(client.rooms);
+    console.log('onGroupLeave end');
+
+    client.leave(`conversation-${data.groupId}`);
+    console.log(client.rooms);
+
+    client.to(`conversation-${data.groupId}`).emit('userLeaveToClientSide');
+  }
+
+  // get socket emit group.create from group.controoler
   @OnEvent('group.create')
   async handleGroupCreateEvent(payload: Group) {
     console.log('group.create event');
