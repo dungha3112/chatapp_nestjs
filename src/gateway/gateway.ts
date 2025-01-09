@@ -4,23 +4,23 @@ import {
   ConnectedSocket,
   MessageBody,
   OnGatewayConnection,
+  OnGatewayDisconnect,
   SubscribeMessage,
   WebSocketGateway,
   WebSocketServer,
 } from '@nestjs/websockets';
 import { Server } from 'socket.io';
+import { IConversationsServices } from 'src/conversations/conversations';
 import { Services } from 'src/utils/constants';
 import { AuthenticatedSocket } from 'src/utils/interfaces';
+import { Conversation, Group } from 'src/utils/typeorm';
 import {
   CreateGroupMessageResponse,
   CreateMessageResponse,
-  DeleteMessageParams,
   DeleteMessageResponse,
   EditMessageResponse,
 } from 'src/utils/types';
 import { IGatewaySessionManager } from './gateway.session';
-import { Conversation, Group } from 'src/utils/typeorm';
-import { IConversationsServices } from 'src/conversations/conversations';
 
 @WebSocketGateway({
   cors: {
@@ -30,8 +30,11 @@ import { IConversationsServices } from 'src/conversations/conversations';
   pingInterval: 25000,
   pingTimeout: 60000,
 })
-export class MessagingGateway implements OnGatewayConnection {
+export class MessagingGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   constructor() {}
+
   @Inject(Services.GATEWAY_SESSION_MANAGER)
   private readonly sessions: IGatewaySessionManager;
 
@@ -48,12 +51,24 @@ export class MessagingGateway implements OnGatewayConnection {
     socket.emit('connected', {});
   }
 
+  handleDisconnect(socket: AuthenticatedSocket) {
+    console.log('disconnected ...');
+    console.log(`${socket.user.email} disconnected.`);
+    this.sessions.removeUserSocket(socket.user.id);
+  }
+
+  @SubscribeMessage('onConnect')
+  handleOnConnect(@ConnectedSocket() client: AuthenticatedSocket) {
+    this.sessions.setUserSocket(client.user.id, client);
+  }
+
   /**
    * --------------------------------------------------------------------------------------------
    *                                CONVERSATION
    * --------------------------------------------------------------------------------------------
    */
   // get emit onConversationJoin from client side
+  // get emit from ConversationPage.tsx
   // data  : {conversationId: number}
   @SubscribeMessage('onConversationJoin')
   onConversationJoin(

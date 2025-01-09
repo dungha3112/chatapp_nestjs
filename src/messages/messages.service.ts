@@ -97,17 +97,18 @@ export class MessagesService implements IMessageServices {
       where: { id: messageId, author: { id: userId } },
       relations: ['conversation', 'author'],
     });
+
     if (!message)
       throw new HttpException(
         'Message not found or you can not delete',
         HttpStatus.BAD_REQUEST,
       );
 
-    if (conversation.lastMessageSent.id !== message.id)
+    if (conversation.lastMessageSent.id !== message.id) {
       await this.messageRepository.delete({ id: message.id });
-
-    await this.deleteLastMessage(conversation, message);
-
+    } else {
+      await this.deleteLastMessage(conversation, message);
+    }
     return message;
   }
 
