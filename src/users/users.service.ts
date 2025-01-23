@@ -58,4 +58,20 @@ export class UsersService implements IuserServices {
 
     return user;
   }
+
+  /**
+   * search user
+   * @param query: string
+   */
+  async searchUsers(query: string): Promise<User[]> {
+    const statement =
+      '(user.firstName LIKE :query OR user.email LIKE :query OR user.lastName LIKE :query)';
+
+    return this.userRepository
+      .createQueryBuilder('user')
+      .where(statement, { query: `%${query}%` })
+      .limit(10)
+      .addSelect(['user.lastName', 'user.firstName', 'user.email', 'user.id'])
+      .getMany();
+  }
 }
