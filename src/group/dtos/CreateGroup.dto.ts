@@ -1,5 +1,4 @@
 import { ArrayNotEmpty, IsString } from 'class-validator';
-import { User } from 'src/utils/typeorm';
 
 export class CreateGroupDto {
   @IsString({ each: true })
@@ -7,4 +6,6 @@ export class CreateGroupDto {
   users: string[];
 
   title: string;
+
+  message: string;
 }

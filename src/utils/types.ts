@@ -104,6 +104,8 @@ export type CreateGroupParams = {
   users: string[];
   title: string;
   owner: User;
+
+  message: string;
 };
 
 //CreateGroupMessageParams

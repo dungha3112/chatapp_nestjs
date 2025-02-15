@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Group } from 'src/utils/typeorm';
+import { Group, GroupMessage } from 'src/utils/typeorm';
 import { CreateGroupParams } from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IGroupServices } from '../interfaces/group';
@@ -13,6 +13,9 @@ export class GroupService implements IGroupServices {
     @InjectRepository(Group)
     private readonly groupRepository: Repository<Group>,
 
+    @InjectRepository(GroupMessage)
+    private readonly groupMessageRepository: Repository<GroupMessage>,
+
     @Inject(Services.USERS) private readonly userServices: IuserServices,
   ) {}
 
@@ -21,7 +24,7 @@ export class GroupService implements IGroupServices {
    * @param params
    */
   async createGroup(params: CreateGroupParams): Promise<Group> {
-    const { owner, title, users } = params;
+    const { owner, title, users, message } = params;
     const userPromise = users.map(
       async (email) => await this.userServices.findUser({ email }),
     );
@@ -35,9 +38,22 @@ export class GroupService implements IGroupServices {
       owner,
       title,
     });
+
     const saveGroup = await this.groupRepository.save(newGroup);
 
-    return saveGroup;
+    const newMessage = this.groupMessageRepository.create({
+      content: message,
+      group: saveGroup,
+      author: owner,
+    });
+    const saveMessage = await this.groupMessageRepository.save(newMessage);
+
+    saveGroup.lastMessageSent = saveMessage;
+
+    const updateMessageGroup = await this.groupRepository.save(saveGroup);
+    delete updateMessageGroup.lastMessageSent.group;
+
+    return updateMessageGroup;
   }
 
   async getGroups(userId: number): Promise<Group[]> {

@@ -119,14 +119,26 @@ export class MessagingGateway
     const { conversationId } = data;
     console.log('onTypingStart ----', { conversationId });
 
-    client.to(conversationId).emit('onTypingStartToClientSide', {
-      conversationId,
-      userId: client.user.id,
-    });
-    this.server.to(conversationId).emit('onTypingStartToClientSide', {
-      conversationId,
-      userId: client.user.id,
-    });
+    client
+      .to(`conversation-${data.conversationId}`)
+      .emit('onTypingStartToClientSide', {
+        conversationId,
+        user: {
+          id: client.user.id,
+          firstName: client.user.firstName,
+          lastName: client.user.lastName,
+        },
+      });
+    this.server
+      .to(`conversation-${data.conversationId}`)
+      .emit('onTypingStartToClientSide', {
+        conversationId,
+        user: {
+          id: client.user.id,
+          firstName: client.user.firstName,
+          lastName: client.user.lastName,
+        },
+      });
   }
 
   // get emit onTypingStop from client side
@@ -140,14 +152,26 @@ export class MessagingGateway
 
     console.log(' ---- onTypingStop ----', { conversationId });
 
-    client.to(conversationId).emit('onTypingStopToClientSide', {
-      conversationId,
-      userId: client.user.id,
-    });
-    this.server.to(conversationId).emit('onTypingStopToClientSide', {
-      conversationId,
-      userId: client.user.id,
-    });
+    client
+      .to(`conversation-${conversationId}`)
+      .emit('onTypingStopToClientSide', {
+        conversationId,
+        user: {
+          id: client.user.id,
+          firstName: client.user.firstName,
+          lastName: client.user.lastName,
+        },
+      });
+    this.server
+      .to(`conversation-${conversationId}`)
+      .emit('onTypingStopToClientSide', {
+        conversationId,
+        user: {
+          id: client.user.id,
+          firstName: client.user.firstName,
+          lastName: client.user.lastName,
+        },
+      });
   }
 
   // get socket emit conversation.create from convesations.controller
@@ -271,7 +295,7 @@ export class MessagingGateway
 
     payload.users.forEach((user) => {
       const socket = this.sessions.getUserSocket(user.id);
-      socket && socket.emit(`onGroupCreateToClient`, payload);
+      socket && socket.emit(`onGroupCreateToClientSide`, payload);
     });
   }
 
@@ -281,6 +305,6 @@ export class MessagingGateway
     const { id } = payload.group;
     console.log('Inside group.message.create');
 
-    this.server.to(`group-${id}`).emit('onGroupMessageToClient', payload);
+    this.server.to(`group-${id}`).emit('onGroupMessageToClientSide', payload);
   }
 }
