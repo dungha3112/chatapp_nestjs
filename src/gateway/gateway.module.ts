@@ -3,9 +3,10 @@ import { Services } from 'src/utils/constants';
 import { MessagingGateway } from './gateway';
 import { GatewaySessionManager } from './gateway.session';
 import { ConversationsModule } from 'src/conversations/conversations.module';
+import { GroupModule } from 'src/group/group.module';
 
 @Module({
-  imports: [ConversationsModule],
+  imports: [ConversationsModule, GroupModule],
   providers: [
     MessagingGateway,
     {

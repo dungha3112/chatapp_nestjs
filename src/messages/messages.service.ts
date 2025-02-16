@@ -117,14 +117,14 @@ export class MessagesService implements IMessageServices {
     const SECOND_MESSAGE_INDEX = 1;
 
     if (size <= 1) {
-      console.log('Last Message Sent is deleted');
+      console.log('Last conversation Message Sent is deleted');
       await this.conversationsServices.update({
         id: conversation.id,
         lastMessageSent: null,
       });
       return this.messageRepository.delete({ id: message.id });
     } else {
-      console.log('There are more than 1 message');
+      console.log('There are more than 1 conversation message');
       const newLastMessage = conversation.messages[SECOND_MESSAGE_INDEX];
       await this.conversationsServices.update({
         id: conversation.id,

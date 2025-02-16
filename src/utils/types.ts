@@ -62,10 +62,8 @@ export type DeleteMessageParams = {
 
 // DeleteMessageResponse
 export type DeleteMessageResponse = {
-  // messageId: number;
-  // conversationId: number;
-  userId: number;
   message: Message;
+  userId: number;
 };
 
 //UpdateConversationParams
@@ -86,16 +84,6 @@ export type EditMessageParams = {
   userId: number;
   messageId: number;
   content: string;
-};
-
-// DeleteMessageResponse
-export type EditMessageResponse = {
-  // conversationId: number;
-  // messageId: number;
-  // content: string;
-  userId: number;
-
-  message: Message;
 };
 
 // Group
@@ -119,4 +107,37 @@ export type CreateGroupMessageParams = {
 export type CreateGroupMessageResponse = {
   message: GroupMessage;
   group: Group;
+};
+
+// DeleteGroupMessageParams
+export type DeleteGroupMessageParams = {
+  userId: number;
+  groupId: number;
+  messageId: number;
+};
+
+// DeleteGroupMessageResponse
+export type DeleteGroupMessageResponse = {
+  message: GroupMessage;
+  userId: number;
+};
+
+//UpdateGroupParams
+export type UpdateGroupParams = Partial<{
+  id: number;
+  lastMessageSent: GroupMessage;
+}>;
+
+//GetGroupMessagesParams
+export type GetGroupMessagesParams = {
+  id: number;
+  limit: number;
+};
+
+// EditGroupMessageParams
+export type EditGroupMessageParams = {
+  groupId: number;
+  userId: number;
+  messageId: number;
+  content: string;
 };

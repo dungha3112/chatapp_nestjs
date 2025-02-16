@@ -80,7 +80,8 @@ export class MessagesController {
     const params = { userId, conversationId, messageId, content };
 
     const message = await this.messageService.editMessage(params);
-    this.eventEmitter.emit('message.edit', { userId, message });
+
+    this.eventEmitter.emit('message.edit', message);
     return message;
   }
 }

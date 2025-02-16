@@ -13,14 +13,15 @@ import { Server } from 'socket.io';
 import { IConversationsServices } from 'src/conversations/conversations';
 import { Services } from 'src/utils/constants';
 import { AuthenticatedSocket } from 'src/utils/interfaces';
-import { Conversation, Group } from 'src/utils/typeorm';
+import { Conversation, Group, GroupMessage, Message } from 'src/utils/typeorm';
 import {
   CreateGroupMessageResponse,
   CreateMessageResponse,
+  DeleteGroupMessageResponse,
   DeleteMessageResponse,
-  EditMessageResponse,
 } from 'src/utils/types';
 import { IGatewaySessionManager } from './gateway.session';
+import { IGroupServices } from 'src/group/interfaces/group';
 
 @WebSocketGateway({
   cors: {
@@ -40,6 +41,9 @@ export class MessagingGateway
 
   @Inject(Services.CONVERSATIONS)
   private readonly conversationServices: IConversationsServices;
+
+  @Inject(Services.GROUPS)
+  private readonly groupServices: IGroupServices;
 
   // server: Server from package, to emit to client side
   @WebSocketServer()
@@ -229,20 +233,19 @@ export class MessagingGateway
   // get socket emit message.edit from messages.controller
   // and send socket to client side
   @OnEvent('message.edit')
-  async handleMessageEditEvent(payload: EditMessageResponse) {
-    const { message, userId } = payload;
+  async handleMessageEditEvent(message: Message) {
+    const {
+      author,
+      conversation: { recipient, creator },
+    } = message;
 
-    const conversation = await this.conversationServices.findById(
-      message.conversation.id,
-    );
-    if (!conversation) return;
-
-    const { creator, recipient } = conversation;
-    const recipientId = creator.id === userId ? recipient.id : creator.id;
-    const recipientSocket = this.sessions.getUserSocket(recipientId);
+    const recipientSocket =
+      author.id === creator.id
+        ? this.sessions.getUserSocket(recipient.id)
+        : this.sessions.getUserSocket(creator.id);
 
     if (recipientSocket)
-      recipientSocket.emit('onMessageEditToClientSide', message);
+      recipientSocket.emit(`onMessageEditToClientSide`, message);
   }
 
   /**
@@ -299,12 +302,36 @@ export class MessagingGateway
     });
   }
 
-  // get socket emit group.message.create from group-messages.controoler
+  ////////////////////////////////////////// Group message ///////////////////////////////////
+  // get socket emit group.message.create from group-messages.controller
   @OnEvent('group.message.create')
   async handleGroupMessageCreateEvent(payload: CreateGroupMessageResponse) {
     const { id } = payload.group;
     console.log('Inside group.message.create');
 
     this.server.to(`group-${id}`).emit('onGroupMessageToClientSide', payload);
+  }
+
+  // get socket emit group.message.delete from groups-messages.controller.ts
+  @OnEvent('group.message.delete')
+  async handleGroupMessageDeleteEvent(payload: DeleteGroupMessageResponse) {
+    const { userId, message } = payload;
+
+    const group = await this.groupServices.findGroupById(message.group.id);
+    if (!group) return;
+
+    const room = `group-${message.group.id}`;
+    this.server.to(room).emit('onGroupMessageDeleteToClientSide', message);
+  }
+
+  // message.group.edit
+  //onGroupMessageEdit
+  @OnEvent('message.group.edit')
+  async handleGroupMessageEditEvent(payload: GroupMessage) {
+    const group = await this.groupServices.findGroupById(payload.group.id);
+    if (!group) return;
+
+    const room = `group-${payload.group.id}`;
+    this.server.to(room).emit('onGroupMessageEditToClientSide', payload);
   }
 }

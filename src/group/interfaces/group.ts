@@ -1,5 +1,9 @@
 import { Group } from 'src/utils/typeorm';
-import { CreateGroupParams } from 'src/utils/types';
+import {
+  CreateGroupParams,
+  GetGroupMessagesParams,
+  UpdateGroupParams,
+} from 'src/utils/types';
 
 export interface IGroupServices {
   createGroup(params: CreateGroupParams): Promise<Group>;
@@ -9,4 +13,8 @@ export interface IGroupServices {
   findGroupById(id: number): Promise<Group>;
 
   saveGroup(group: Group): Promise<Group>;
+
+  updateGroup(params: UpdateGroupParams);
+
+  getMessages(params: GetGroupMessagesParams): Promise<Group>;
 }

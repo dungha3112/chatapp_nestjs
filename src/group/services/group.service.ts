@@ -1,7 +1,11 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Group, GroupMessage } from 'src/utils/typeorm';
-import { CreateGroupParams } from 'src/utils/types';
+import {
+  CreateGroupParams,
+  GetGroupMessagesParams,
+  UpdateGroupParams,
+} from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IGroupServices } from '../interfaces/group';
 import { Services } from 'src/utils/constants';
@@ -84,5 +88,27 @@ export class GroupService implements IGroupServices {
 
   async saveGroup(group: Group): Promise<Group> {
     return await this.groupRepository.save(group);
+  }
+
+  async updateGroup(params: UpdateGroupParams) {
+    const { id, lastMessageSent } = params;
+    return await this.groupRepository.update(id, { lastMessageSent });
+  }
+
+  async getMessages({ id, limit }: GetGroupMessagesParams): Promise<Group> {
+    const group = await this.groupRepository
+      .createQueryBuilder('group')
+      .where('id = :id', { id })
+      .leftJoinAndSelect('group.lastMessageSent', 'lastMessageSent')
+      .leftJoinAndSelect('group.messages', 'message')
+      .where('group.id = :id', { id })
+      .orderBy('message.createdAt', 'DESC')
+      .limit(limit)
+      .getOne();
+
+    if (!group)
+      throw new HttpException('Group not found', HttpStatus.BAD_REQUEST);
+
+    return group;
   }
 }

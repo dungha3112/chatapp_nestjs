@@ -3,7 +3,6 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Conversation, Message, User } from 'src/utils/typeorm';
 import {
   CreateConversationsParams,
-  DeleteMessageParams,
   GetConversationMessagesParams,
   UpdateConversationParams,
 } from 'src/utils/types';

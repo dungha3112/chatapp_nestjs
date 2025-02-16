@@ -10,17 +10,11 @@ import { UsersModule } from 'src/users/users.module';
   imports: [TypeOrmModule.forFeature([Conversation, Message]), UsersModule],
   controllers: [ConversationsController],
   providers: [
-    {
-      provide: Services.CONVERSATIONS,
-      useClass: ConversationsService,
-    },
+    { provide: Services.CONVERSATIONS, useClass: ConversationsService },
   ],
 
   exports: [
-    {
-      provide: Services.CONVERSATIONS,
-      useClass: ConversationsService,
-    },
+    { provide: Services.CONVERSATIONS, useClass: ConversationsService },
   ],
 })
 export class ConversationsModule {}
