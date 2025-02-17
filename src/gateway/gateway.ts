@@ -67,6 +67,14 @@ export class MessagingGateway
   }
 
   /**
+   * user online or offline
+   */
+  @SubscribeMessage('getOnlineGroupUsers')
+  handleGetOnlineGroupUser(@ConnectedSocket() client: AuthenticatedSocket) {
+    console.log(this.server.sockets.adapter.rooms);
+  }
+
+  /**
    * --------------------------------------------------------------------------------------------
    *                                CONVERSATION
    * --------------------------------------------------------------------------------------------
@@ -293,12 +301,18 @@ export class MessagingGateway
 
   // get socket emit group.create from group.controoler
   @OnEvent('group.create')
-  async handleGroupCreateEvent(payload: Group) {
+  async handleGroupCreateEvent(
+    payload: Group,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
     console.log('group.create event');
+    const ownerId = payload.owner.id;
 
     payload.users.forEach((user) => {
-      const socket = this.sessions.getUserSocket(user.id);
-      socket && socket.emit(`onGroupCreateToClientSide`, payload);
+      if (user.id !== ownerId) {
+        const socket = this.sessions.getUserSocket(user.id);
+        socket && socket.emit(`onGroupCreateToClientSide`, payload);
+      }
     });
   }
 
