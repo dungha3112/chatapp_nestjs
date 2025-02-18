@@ -69,6 +69,7 @@ export class GroupService implements IGroupServices {
       .leftJoinAndSelect('group.users', 'users')
       .leftJoinAndSelect('group.lastMessageSent', 'lastMessageSent')
       .leftJoinAndSelect('lastMessageSent.author', 'author')
+      .orderBy('lastMessageSent.createdAt', 'DESC')
       .getMany();
 
     return groups;

@@ -68,10 +68,26 @@ export class MessagingGateway
 
   /**
    * user online or offline
+   * MessageBody : {groupId}: number
    */
   @SubscribeMessage('getOnlineGroupUsers')
-  handleGetOnlineGroupUser(@ConnectedSocket() client: AuthenticatedSocket) {
-    console.log(this.server.sockets.adapter.rooms);
+  async handleGetOnlineGroupUsers(
+    @MessageBody() data: any,
+    @ConnectedSocket() client: AuthenticatedSocket,
+  ) {
+    const { groupId } = data;
+    const group = await this.groupServices.findGroupById(parseInt(groupId));
+
+    if (!group) return;
+    const onlineUsers = [];
+    const offlineUsers = [];
+
+    group.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      socket ? onlineUsers.push(user) : offlineUsers.push(user);
+    });
+
+    client.emit('onlineGroupUsersReceived', { onlineUsers, offlineUsers });
   }
 
   /**
@@ -87,14 +103,16 @@ export class MessagingGateway
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
+    const { conversationId } = data;
+
     console.log(`conversation join`, { data });
 
-    client.join(`conversation-${data.conversationId}`);
+    client.join(`conversation-${conversationId}`);
     console.log(client.rooms);
 
     client
-      .to(`conversation-${data.conversationId}`)
-      .emit('userJoinToClientSide');
+      .to(`conversation-${conversationId}`)
+      .emit('userConversationJoinToClientSide');
   }
 
   // get emit onConversationLeave from client side
@@ -132,7 +150,7 @@ export class MessagingGateway
     console.log('onTypingStart ----', { conversationId });
 
     client
-      .to(`conversation-${data.conversationId}`)
+      .to(`conversation-${conversationId}`)
       .emit('onTypingStartToClientSide', {
         conversationId,
         user: {
@@ -142,7 +160,7 @@ export class MessagingGateway
         },
       });
     this.server
-      .to(`conversation-${data.conversationId}`)
+      .to(`conversation-${conversationId}`)
       .emit('onTypingStartToClientSide', {
         conversationId,
         user: {
@@ -279,7 +297,7 @@ export class MessagingGateway
     client.join(`group-${data.groupId}`);
     console.log(client.rooms);
 
-    client.to(`conversation-${data.groupId}`).emit('userJoinToClientSide');
+    client.to(`group-${data.groupId}`).emit('useGroupJoinToClientSide');
   }
 
   // get emit onGroupLeave from client side
