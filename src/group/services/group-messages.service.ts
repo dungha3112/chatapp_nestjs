@@ -8,10 +8,11 @@ import {
 } from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IGroupMessageServices } from '../interfaces/group-messages';
-import { HttpException, HttpStatus, Inject } from '@nestjs/common';
+import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Services } from 'src/utils/constants';
 import { IGroupServices } from '../interfaces/group';
 
+@Injectable()
 export class GroupMessageServices implements IGroupMessageServices {
   constructor(
     @InjectRepository(GroupMessage)

@@ -7,13 +7,20 @@ import { GroupMessageController } from './controllers/group-messages.controller'
 import { GroupController } from './controllers/group.controller';
 import { GroupMessageServices } from './services/group-messages.service';
 import { GroupService } from './services/group.service';
+import { GroupRecipientsController } from './controllers/group-recipients.controller';
+import { GroupRecipientsServices } from './services/group-recipients.service';
 
 @Module({
   imports: [TypeOrmModule.forFeature([Group, GroupMessage]), UsersModule],
-  controllers: [GroupController, GroupMessageController],
+  controllers: [
+    GroupController,
+    GroupMessageController,
+    GroupRecipientsController,
+  ],
   providers: [
     { provide: Services.GROUPS, useClass: GroupService },
     { provide: Services.GROUPS_MESSAGES, useClass: GroupMessageServices },
+    { provide: Services.GROUPS_RECIPIENTS, useClass: GroupRecipientsServices },
   ],
 
   exports: [{ provide: Services.GROUPS, useClass: GroupService }],
