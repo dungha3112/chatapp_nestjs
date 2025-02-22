@@ -78,13 +78,13 @@ export class GroupService implements IGroupServices {
   async findGroupById(id: number): Promise<Group> {
     const group = await this.groupRepository.findOne({
       where: { id },
-      relations: ['lastMessageSent', 'owner', 'users'],
+      relations: [
+        'lastMessageSent',
+        'owner',
+        'users',
+        'lastMessageSent.author',
+      ],
     });
-    if (!group)
-      throw new HttpException(
-        'Groups not found with this id',
-        HttpStatus.BAD_REQUEST,
-      );
     return group;
   }
 

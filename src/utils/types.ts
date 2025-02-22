@@ -144,7 +144,26 @@ export type EditGroupMessageParams = {
 
 // AddGroupRecipientParams
 export type AddGroupRecipientParams = {
-  userId: number;
+  ownerId: number;
   groupId: number;
   email: string;
+};
+
+// AddGroupUserResponse
+export type AddGroupUserResponse = {
+  group: Group;
+  user: User;
+};
+
+// RemoveGroupRecipientParams
+export type RemoveGroupRecipientParams = {
+  ownerId: number;
+  groupId: number;
+  removeUserId: number;
+};
+
+// RemoveGroupRecipientResponse
+export type RemoveGroupRecipientResponse = {
+  group: Group;
+  user: User;
 };

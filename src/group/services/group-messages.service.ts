@@ -11,6 +11,7 @@ import { IGroupMessageServices } from '../interfaces/group-messages';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Services } from 'src/utils/constants';
 import { IGroupServices } from '../interfaces/group';
+import { GroupNotFoundException } from '../exceptions/GroupNotFound';
 
 @Injectable()
 export class GroupMessageServices implements IGroupMessageServices {
@@ -32,6 +33,7 @@ export class GroupMessageServices implements IGroupMessageServices {
     const { content, groupId, user } = params;
 
     const group = await this.groupServices.findGroupById(groupId);
+    if (!group) throw new GroupNotFoundException();
 
     const findUser = group.users.find((u) => u.id === user.id);
     if (!findUser)
@@ -59,6 +61,7 @@ export class GroupMessageServices implements IGroupMessageServices {
 
   async getGroupMessagesById(groupId: number): Promise<GroupMessage[]> {
     const group = await this.groupServices.findGroupById(groupId);
+    if (!group) throw new GroupNotFoundException();
 
     const messages = await this.groupMessageRepository.find({
       where: { group: { id: groupId } },
