@@ -12,7 +12,7 @@ import { EventEmitter2 } from '@nestjs/event-emitter';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
-import { User } from 'src/utils/typeorm';
+import { Group, User } from 'src/utils/typeorm';
 import {
   AddGroupUserResponse,
   RemoveGroupRecipientResponse,
@@ -46,14 +46,16 @@ export class GroupRecipientsController {
   }
 
   @Delete('/:removeUserId')
-  removeGroupRecipient(
+  async removeGroupRecipient(
     @AuthUser() { id: ownerId }: User,
     @Param('groupId', ParseIntPipe) groupId: number,
     @Param('removeUserId', ParseIntPipe) removeUserId: number,
-  ): Promise<RemoveGroupRecipientResponse> {
+  ): Promise<Group> {
     const params = { ownerId, groupId, removeUserId };
-    const res = this.groupRecipientsServices.removeGroupRecipient(params);
+    const res: RemoveGroupRecipientResponse =
+      await this.groupRecipientsServices.removeGroupRecipient(params);
 
-    return res;
+    this.eventEmitter.emit('group.remove.user', res);
+    return res.group;
   }
 }

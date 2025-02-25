@@ -22,7 +22,7 @@ import { CreateMessageDto } from './dtos/CreateMessageDto';
 import { IMessageServices } from './messages';
 import { EditMessageDto } from './dtos/EditMessageDto';
 
-@UseGuards(AuthenticatedGuard)
+// @UseGuards(AuthenticatedGuard)
 @Controller(Routes.MESSAGES)
 export class MessagesController {
   constructor(

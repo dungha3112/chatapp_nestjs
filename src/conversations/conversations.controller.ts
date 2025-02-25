@@ -6,17 +6,14 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
 import { Conversation, User } from 'src/utils/typeorm';
 import { IConversationsServices } from './conversations';
 import { CreateConversationDto } from './dtos/CreateConversation.dto';
 
-@UseGuards(AuthenticatedGuard)
 @Controller(Routes.CONVERSATIONS)
 export class ConversationsController {
   constructor(
@@ -50,10 +47,12 @@ export class ConversationsController {
     return conversations;
   }
 
-  @Get('/:conversationId')
+  @Get(':conversationId')
   async findById(
     @Param('conversationId', ParseIntPipe) conversationId: number,
   ) {
+    console.log(`get conversation by id ...`);
+
     return await this.conversationServices.findById(conversationId);
   }
 }

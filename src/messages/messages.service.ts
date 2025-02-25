@@ -12,6 +12,7 @@ import {
 } from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IMessageServices } from './messages';
+import { ConversationNotFoundException } from 'src/conversations/exceptions/ConversationNotFound';
 
 @Injectable()
 export class MessagesService implements IMessageServices {
@@ -35,6 +36,7 @@ export class MessagesService implements IMessageServices {
 
     const conversation =
       await this.conversationsServices.findById(conversationId);
+    if (!conversation) throw new ConversationNotFoundException();
 
     const { creator, recipient } = conversation;
 
@@ -72,6 +74,7 @@ export class MessagesService implements IMessageServices {
    */
   async getMessageByConversationId(id: number): Promise<Message[]> {
     const conversation = await this.conversationsServices.findById(id);
+    if (!conversation) throw new ConversationNotFoundException();
 
     const messages = await this.messageRepository.find({
       where: { conversation: { id: id } },

@@ -78,6 +78,11 @@ export type GetConversationMessagesParams = {
   limit: number;
 };
 
+export type AccessParams = {
+  conversationId: number;
+  userId: number;
+};
+
 // EditMessageParams
 export type EditMessageParams = {
   conversationId: number;

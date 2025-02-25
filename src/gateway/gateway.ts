@@ -20,6 +20,7 @@ import {
   CreateMessageResponse,
   DeleteGroupMessageResponse,
   DeleteMessageResponse,
+  RemoveGroupRecipientResponse,
 } from 'src/utils/types';
 import { IGatewaySessionManager } from './gateway.session';
 import { IGroupServices } from 'src/group/interfaces/group';
@@ -111,9 +112,7 @@ export class MessagingGateway
     client.join(`conversation-${conversationId}`);
     console.log(client.rooms);
 
-    client
-      .to(`conversation-${conversationId}`)
-      .emit('userConversationJoinToClientSide');
+    client.to(`conversation-${conversationId}`).emit('userConversationJoin');
   }
 
   // get emit onConversationLeave from client side
@@ -130,9 +129,7 @@ export class MessagingGateway
     client.leave(`conversation-${data.conversationId}`);
     console.log(client.rooms);
 
-    client
-      .to(`conversation-${data.conversationId}`)
-      .emit('userLeaveToClientSide');
+    client.to(`conversation-${data.conversationId}`).emit('userLeave');
   }
 
   /**
@@ -150,26 +147,22 @@ export class MessagingGateway
     const { conversationId } = data;
     console.log('onTypingStart ----', { conversationId });
 
-    client
-      .to(`conversation-${conversationId}`)
-      .emit('onTypingStartToClientSide', {
-        conversationId,
-        user: {
-          id: client.user.id,
-          firstName: client.user.firstName,
-          lastName: client.user.lastName,
-        },
-      });
-    this.server
-      .to(`conversation-${conversationId}`)
-      .emit('onTypingStartToClientSide', {
-        conversationId,
-        user: {
-          id: client.user.id,
-          firstName: client.user.firstName,
-          lastName: client.user.lastName,
-        },
-      });
+    client.to(`conversation-${conversationId}`).emit('onTypingStart', {
+      conversationId,
+      user: {
+        id: client.user.id,
+        firstName: client.user.firstName,
+        lastName: client.user.lastName,
+      },
+    });
+    this.server.to(`conversation-${conversationId}`).emit('onTypingStart', {
+      conversationId,
+      user: {
+        id: client.user.id,
+        firstName: client.user.firstName,
+        lastName: client.user.lastName,
+      },
+    });
   }
 
   // get emit onTypingStop from client side
@@ -183,26 +176,22 @@ export class MessagingGateway
 
     console.log(' ---- onTypingStop ----', { conversationId });
 
-    client
-      .to(`conversation-${conversationId}`)
-      .emit('onTypingStopToClientSide', {
-        conversationId,
-        user: {
-          id: client.user.id,
-          firstName: client.user.firstName,
-          lastName: client.user.lastName,
-        },
-      });
-    this.server
-      .to(`conversation-${conversationId}`)
-      .emit('onTypingStopToClientSide', {
-        conversationId,
-        user: {
-          id: client.user.id,
-          firstName: client.user.firstName,
-          lastName: client.user.lastName,
-        },
-      });
+    client.to(`conversation-${conversationId}`).emit('onTypingStop', {
+      conversationId,
+      user: {
+        id: client.user.id,
+        firstName: client.user.firstName,
+        lastName: client.user.lastName,
+      },
+    });
+    this.server.to(`conversation-${conversationId}`).emit('onTypingStop', {
+      conversationId,
+      user: {
+        id: client.user.id,
+        firstName: client.user.firstName,
+        lastName: client.user.lastName,
+      },
+    });
   }
 
   // get socket emit conversation.create from convesations.controller
@@ -210,8 +199,7 @@ export class MessagingGateway
   @OnEvent('conversation.create')
   handleConversationCreateEvent(payload: Conversation) {
     const recipientSocket = this.sessions.getUserSocket(payload.recipient.id);
-    if (recipientSocket)
-      recipientSocket.emit('onConversationCreateToClientSide', payload);
+    if (recipientSocket) recipientSocket.emit('onConversationCreate', payload);
   }
 
   /**
@@ -231,10 +219,9 @@ export class MessagingGateway
         ? this.sessions.getUserSocket(conversation.recipient.id)
         : this.sessions.getUserSocket(conversation.creator.id);
 
-    if (authSocket) authSocket.emit('onMessageCreateToClientSide', payload);
+    if (authSocket) authSocket.emit('onMessageCreate', payload);
 
-    if (recipientSocket)
-      recipientSocket.emit('onMessageCreateToClientSide', payload);
+    if (recipientSocket) recipientSocket.emit('onMessageCreate', payload);
   }
 
   // get socket message.delete from messages.controller
@@ -253,8 +240,7 @@ export class MessagingGateway
     const recipientId = creator.id === userId ? recipient.id : creator.id;
 
     const recipientSocket = this.sessions.getUserSocket(recipientId);
-    if (recipientSocket)
-      recipientSocket.emit('onMessageDeleteToClientSide', message);
+    if (recipientSocket) recipientSocket.emit('onMessageDelete', message);
   }
 
   // get socket emit message.edit from messages.controller
@@ -271,8 +257,7 @@ export class MessagingGateway
         ? this.sessions.getUserSocket(recipient.id)
         : this.sessions.getUserSocket(creator.id);
 
-    if (recipientSocket)
-      recipientSocket.emit(`onMessageEditToClientSide`, message);
+    if (recipientSocket) recipientSocket.emit(`onMessageEdit`, message);
   }
 
   /**
@@ -298,7 +283,7 @@ export class MessagingGateway
     client.join(`group-${data.groupId}`);
     console.log(client.rooms);
 
-    client.to(`group-${data.groupId}`).emit('useGroupJoinToClientSide');
+    client.to(`group-${data.groupId}`).emit('userGroupJoin');
   }
 
   // get emit onGroupLeave from client side
@@ -315,7 +300,7 @@ export class MessagingGateway
     client.leave(`conversation-${data.groupId}`);
     console.log(client.rooms);
 
-    client.to(`conversation-${data.groupId}`).emit('userLeaveToClientSide');
+    client.to(`conversation-${data.groupId}`).emit('userLeave');
   }
 
   // get socket emit group.create from group.controoler
@@ -330,7 +315,7 @@ export class MessagingGateway
     payload.users.forEach((user) => {
       if (user.id !== ownerId) {
         const socket = this.sessions.getUserSocket(user.id);
-        socket && socket.emit(`onGroupCreateToClientSide`, payload);
+        socket && socket.emit(`onGroupCreate`, payload);
       }
     });
   }
@@ -341,8 +326,8 @@ export class MessagingGateway
   async handleGroupMessageCreateEvent(payload: CreateGroupMessageResponse) {
     const { id } = payload.group;
     console.log('Inside group.message.create');
-
-    this.server.to(`group-${id}`).emit('onGroupMessageToClientSide', payload);
+    const ROM = `group-${id}`;
+    this.server.to(ROM).emit('onGroupMessage', payload);
   }
 
   // get socket emit group.message.delete from groups-messages.controller.ts
@@ -353,8 +338,8 @@ export class MessagingGateway
     const group = await this.groupServices.findGroupById(message.group.id);
     if (!group) return;
 
-    const room = `group-${message.group.id}`;
-    this.server.to(room).emit('onGroupMessageDeleteToClientSide', message);
+    const ROM = `group-${message.group.id}`;
+    this.server.to(ROM).emit('onGroupMessageDelete', message);
   }
 
   // message.group.edit
@@ -364,8 +349,8 @@ export class MessagingGateway
     const group = await this.groupServices.findGroupById(payload.group.id);
     if (!group) return;
 
-    const room = `group-${payload.group.id}`;
-    this.server.to(room).emit('onGroupMessageEditToClientSide', payload);
+    const ROM = `group-${group.id}`;
+    this.server.to(ROM).emit('onGroupMessageEdit', payload);
   }
 
   /**
@@ -375,15 +360,35 @@ export class MessagingGateway
 
   //group.add.user
   @OnEvent('group.add.user')
-  async handleGroupUserAdd(payload: AddGroupUserResponse) {
+  handleGroupUserAdd(payload: AddGroupUserResponse) {
     const { group, user } = payload;
 
     const recipientSocket = this.sessions.getUserSocket(user.id);
 
-    const room = `group/${group?.id}`;
-    this.server.to(room).emit('onGroupReceivedNewUserToClient', payload);
+    const ROM = `group/${group.id}`;
+    this.server.to(ROM).emit('onGroupReceivedNewUser', group);
 
-    recipientSocket &&
-      recipientSocket.emit('onGroupUserAddToClientSide', payload);
+    recipientSocket && recipientSocket.emit('onGroupUserAdd', group);
+  }
+
+  //group.remove.user
+  @OnEvent('group.remove.user')
+  handleGroupRemoveUser(payload: RemoveGroupRecipientResponse) {
+    const { group, user } = payload;
+    const ROM = `group/${group.id}`;
+    const removedUserSocket = this.sessions.getUserSocket(user.id);
+
+    if (removedUserSocket) {
+      removedUserSocket.emit('onGroupUserRemoved', payload);
+      removedUserSocket.leave(ROM);
+    }
+
+    // send socket to all user in group
+    this.server.to(ROM).emit('onGroupRecipientRemoved', payload);
+
+    // group.users.forEach((user) => {
+    //   const socket = this.sessions.getUserSocket(user.id);
+    //   socket && socket.emit('onGroupRecipientRemoved', payload);
+    // });
   }
 }
