@@ -18,7 +18,15 @@ export const isAuthorized = async (
   next: NextFunction,
 ) => {
   console.log(`is authorized`);
-  if (req.user) next();
 
-  throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+  try {
+    if (req.user) {
+      next();
+    } else {
+      throw new HttpException('Unauthorized', HttpStatus.UNAUTHORIZED);
+    }
+  } catch (error) {
+    console.log('error authorized: ', error);
+    return next(error);
+  }
 };

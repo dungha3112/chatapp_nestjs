@@ -19,6 +19,9 @@ export class LocalAuthGuard extends AuthGuard('local') {
 export class AuthenticatedGuard implements CanActivate {
   async canActivate(context: ExecutionContext): Promise<any> {
     const request = await context.switchToHttp().getRequest();
+    console.log('authenticalte guard start');
+    // console.log(request);
+    console.log('authenticalte guard end');
 
     return request.isAuthenticated();
   }

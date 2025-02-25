@@ -129,8 +129,8 @@ export class ConversationsService implements IConversationsServices {
       ],
     });
 
-    delete conversation.creator.password;
-    delete conversation.recipient.password;
+    // delete conversation.creator.password;
+    // delete conversation.recipient.password;
 
     return conversation;
   }
@@ -184,10 +184,12 @@ export class ConversationsService implements IConversationsServices {
   async hasAccess(params: AccessParams) {
     const { conversationId, userId } = params;
     const conversation = await this.findById(conversationId);
+
     if (!conversation) throw new ConversationNotFoundException();
 
     return (
-      conversation.creator.id === userId || conversation.recipient.id === userId
+      (conversation.creator && conversation.creator.id === userId) ||
+      (conversation.recipient && conversation.recipient.id === userId)
     );
   }
 }

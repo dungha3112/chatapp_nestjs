@@ -6,6 +6,7 @@ import {
   Param,
   ParseIntPipe,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Routes, Services } from 'src/utils/constants';
@@ -13,7 +14,9 @@ import { AuthUser } from 'src/utils/decorators';
 import { Conversation, User } from 'src/utils/typeorm';
 import { IConversationsServices } from './conversations';
 import { CreateConversationDto } from './dtos/CreateConversation.dto';
+import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 
+@UseGuards(AuthenticatedGuard)
 @Controller(Routes.CONVERSATIONS)
 export class ConversationsController {
   constructor(

@@ -1,10 +1,10 @@
-import { Inject, NestMiddleware, Param, ParseIntPipe } from '@nestjs/common';
+import { Inject, NestMiddleware } from '@nestjs/common';
 import { NextFunction, Response } from 'express';
 import { Services } from 'src/utils/constants';
 import { AuthenticatedRequest } from 'src/utils/types';
 import { IConversationsServices } from '../conversations';
-import { ConversationNotFoundException } from '../exceptions/ConversationNotFound';
 import { ConversationInvalidException } from '../exceptions/ConversationInvalid';
+import { ConversationNotFoundException } from '../exceptions/ConversationNotFound';
 
 export class ConversationMiddleware implements NestMiddleware {
   constructor(
@@ -24,6 +24,8 @@ export class ConversationMiddleware implements NestMiddleware {
       conversationId,
       userId,
     });
+
+    console.log(isReadable);
 
     if (isReadable) {
       next();
