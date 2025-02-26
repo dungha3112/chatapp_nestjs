@@ -78,7 +78,8 @@ export type GetConversationMessagesParams = {
   limit: number;
 };
 
-export type AccessParams = {
+//AccessConversationParams
+export type AccessConversationParams = {
   conversationId: number;
   userId: number;
 };
@@ -91,6 +92,11 @@ export type EditMessageParams = {
   content: string;
 };
 
+/**
+ *
+ *
+ * // TYPE GROUP
+ */
 // Group
 // CreateGroupParams
 export type CreateGroupParams = {
@@ -99,6 +105,12 @@ export type CreateGroupParams = {
   owner: User;
 
   message: string;
+};
+
+//AccessGroupParams
+export type AccessGroupParams = {
+  groupId: number;
+  userId: number;
 };
 
 //CreateGroupMessageParams

@@ -1,5 +1,6 @@
-import { Group } from 'src/utils/typeorm';
+import { Group, User } from 'src/utils/typeorm';
 import {
+  AccessGroupParams,
   CreateGroupParams,
   GetGroupMessagesParams,
   UpdateGroupParams,
@@ -17,4 +18,6 @@ export interface IGroupServices {
   updateGroup(params: UpdateGroupParams);
 
   getMessages(params: GetGroupMessagesParams): Promise<Group>;
+
+  hasAccess(params: AccessGroupParams): Promise<User>;
 }

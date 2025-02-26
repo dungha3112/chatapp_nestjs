@@ -2,7 +2,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Conversation, Message, User } from 'src/utils/typeorm';
 import {
-  AccessParams,
+  AccessConversationParams,
   CreateConversationsParams,
   GetConversationMessagesParams,
   UpdateConversationParams,
@@ -181,7 +181,7 @@ export class ConversationsService implements IConversationsServices {
     return await this.conversationRepository.update(id, { lastMessageSent });
   }
 
-  async hasAccess(params: AccessParams) {
+  async hasAccess(params: AccessConversationParams) {
     const { conversationId, userId } = params;
     const conversation = await this.findById(conversationId);
 

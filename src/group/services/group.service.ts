@@ -1,7 +1,8 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Group, GroupMessage } from 'src/utils/typeorm';
+import { Group, GroupMessage, User } from 'src/utils/typeorm';
 import {
+  AccessGroupParams,
   CreateGroupParams,
   GetGroupMessagesParams,
   UpdateGroupParams,
@@ -10,6 +11,7 @@ import { Repository } from 'typeorm';
 import { IGroupServices } from '../interfaces/group';
 import { Services } from 'src/utils/constants';
 import { IuserServices } from 'src/users/user';
+import { GroupNotFoundException } from '../exceptions/GroupNotFound';
 
 @Injectable()
 export class GroupService implements IGroupServices {
@@ -112,5 +114,15 @@ export class GroupService implements IGroupServices {
       throw new HttpException('Group not found', HttpStatus.BAD_REQUEST);
 
     return group;
+  }
+
+  async hasAccess(params: AccessGroupParams): Promise<User> {
+    const { groupId, userId } = params;
+
+    const group = await this.findGroupById(groupId);
+    if (!group) throw new GroupNotFoundException();
+
+    const user = group.users.find((u) => u.id === userId);
+    return user;
   }
 }

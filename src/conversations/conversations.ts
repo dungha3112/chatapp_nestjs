@@ -1,6 +1,6 @@
 import { Conversation, User } from 'src/utils/typeorm';
 import {
-  AccessParams,
+  AccessConversationParams,
   CreateConversationsParams,
   GetConversationMessagesParams,
   UpdateConversationParams,
@@ -22,5 +22,5 @@ export interface IConversationsServices {
 
   update(params: UpdateConversationParams);
 
-  hasAccess(params: AccessParams);
+  hasAccess(params: AccessConversationParams);
 }

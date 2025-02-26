@@ -25,8 +25,6 @@ export class ConversationMiddleware implements NestMiddleware {
       userId,
     });
 
-    console.log(isReadable);
-
     if (isReadable) {
       next();
     } else {

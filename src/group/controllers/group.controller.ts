@@ -6,17 +6,14 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  UseGuards,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { Routes, Services } from 'src/utils/constants';
-import { IGroupServices } from '../interfaces/group';
 import { AuthUser } from 'src/utils/decorators';
 import { Group, User } from 'src/utils/typeorm';
 import { CreateGroupDto } from '../dtos/CreateGroup.dto';
-import { AuthenticatedGuard } from 'src/auth/utils/Guards';
-import { EventEmitter2 } from '@nestjs/event-emitter';
+import { IGroupServices } from '../interfaces/group';
 
-@UseGuards(AuthenticatedGuard)
 @Controller(Routes.GROUPS)
 export class GroupController {
   constructor(
