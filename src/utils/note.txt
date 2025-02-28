@@ -1,0 +1,53 @@
+  @OnEvent('group.owner.update')
+  async handleUpdateGroupOwner(payload: Group) {
+    // const ROM_NAME = `group/${payload.id}`;
+    // const newOwnerSocket = this.sessions.getUserSocket(payload.owner.id);
+    // const { rooms } = this.server.sockets.adapter;
+    // // if (!rooms.has(newOwnerSocket.id)) {
+    // //   newOwnerSocket && newOwnerSocket.emit('onGroupOwnerUpdate', payload);
+    // // } else this.server.to(ROM_NAME).emit('onGroupOwnerUpdate', payload);
+
+    /**
+     * methoa 1
+     */
+    // await Promise.all(
+    //   payload.users.map((user) => {
+    //     const userSocket = this.sessions.getUserSocket(user.id);
+    //     if (userSocket) {
+    //       return new Promise((resolve) => {
+    //         userSocket.emit('onGroupOwnerUpdate', payload);
+    //         resolve(null); // Trả về Promise để `Promise.all()` hoạt động
+    //       });
+    //     }
+    //   }),
+    // );
+
+    /**
+     * mothod 2
+     */
+    // const socketIds = payload.users
+    //   .map((user) => this.sessions.getUserSocket(user.id))
+    //   .filter((socket): socket is AuthenticatedSocket => Boolean(socket))
+    //   .map((socket) => socket.id);
+
+    // this.server.to(socketIds).emit('onGroupOwnerUpdate', payload);
+
+    /**
+     * method 3
+     */
+    // group.users.forEach((user) => {
+    //   const socket = this.sessions.getUserSocket(user.id);
+    //   socket && socket.emit('onGroupRecipientRemoved', payload);
+    // });
+
+    // forloop and send socket emit one time
+    const socketIds: string[] = [];
+    payload.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      if (socket) socketIds.push(socket.id);
+    });
+
+    if (socketIds.length > 0) {
+      this.server.to(socketIds).emit('onGroupOwnerUpdate', payload);
+    }
+  }

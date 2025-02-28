@@ -3,6 +3,7 @@ import {
   AccessGroupParams,
   CreateGroupParams,
   GetGroupMessagesParams,
+  TranferOwnerParams,
   UpdateGroupParams,
 } from 'src/utils/types';
 
@@ -20,4 +21,6 @@ export interface IGroupServices {
   getMessages(params: GetGroupMessagesParams): Promise<Group>;
 
   hasAccess(params: AccessGroupParams): Promise<User>;
+
+  updateGroupOwner(params: TranferOwnerParams): Promise<Group>;
 }

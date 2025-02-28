@@ -1,16 +1,20 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { IGroupRecipientsServices } from '../interfaces/group-recipients';
+import { IuserServices } from 'src/users/user';
+import { Services } from 'src/utils/constants';
 import {
   AddGroupRecipientParams,
   AddGroupUserResponse,
+  CheckUserInGroupParams,
   RemoveGroupRecipientParams,
   RemoveGroupRecipientResponse,
+  UserLeaveGroupParams,
 } from 'src/utils/types';
-import { Services } from 'src/utils/constants';
-import { IuserServices } from 'src/users/user';
-import { IGroupServices } from '../interfaces/group';
 import { GroupNotFoundException } from '../exceptions/GroupNotFound';
+import { GroupParticipantNotFoundException } from '../exceptions/GroupParticipantNotFound';
 import { NotGroupOwnerException } from '../exceptions/NotGroupOwner';
+import { IGroupServices } from '../interfaces/group';
+import { IGroupRecipientsServices } from '../interfaces/group-recipients';
+import { Group } from 'src/utils/typeorm';
 
 @Injectable()
 export class GroupRecipientsServices implements IGroupRecipientsServices {
@@ -78,5 +82,37 @@ export class GroupRecipientsServices implements IGroupRecipientsServices {
     const saveGroup = await this.groupServices.saveGroup(group);
 
     return { group: saveGroup, user: userToBeRemoved };
+  }
+
+  async userLeaveGroup(params: UserLeaveGroupParams): Promise<Group> {
+    const { groupId, userId } = params;
+
+    const group = await this.isUserInGroup(params);
+    if (userId === group.owner.id)
+      throw new HttpException(
+        'Cannot leave group as owner',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    group.users = group.users.filter((u) => u.id !== userId);
+
+    const updateGroup = await this.groupServices.saveGroup(group);
+    return updateGroup;
+  }
+
+  async isUserInGroup(params: CheckUserInGroupParams) {
+    const { userId, groupId } = params;
+
+    const group = await this.groupServices.findGroupById(groupId);
+    console.log({ group });
+
+    if (!group) throw new GroupNotFoundException();
+
+    const user = group.users.find((u) => u.id === userId);
+    console.log({ user });
+
+    if (!user) throw new GroupParticipantNotFoundException();
+
+    return group;
   }
 }

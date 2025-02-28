@@ -1,3 +1,4 @@
+import { AuthenticatedSocket } from './../utils/interfaces';
 import { Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import {
@@ -12,7 +13,6 @@ import {
 import { Server } from 'socket.io';
 import { IConversationsServices } from 'src/conversations/conversations';
 import { Services } from 'src/utils/constants';
-import { AuthenticatedSocket } from 'src/utils/interfaces';
 import { Conversation, Group, GroupMessage, Message } from 'src/utils/typeorm';
 import {
   AddGroupUserResponse,
@@ -305,19 +305,28 @@ export class MessagingGateway
 
   // get socket emit group.create from group.controoler
   @OnEvent('group.create')
-  async handleGroupCreateEvent(
-    payload: Group,
-    @ConnectedSocket() client: AuthenticatedSocket,
-  ) {
+  async handleGroupCreateEvent(payload: Group) {
     console.log('group.create event');
     const ownerId = payload.owner.id;
 
+    // payload.users.forEach((user) => {
+    //   if (user.id !== ownerId) {
+    //     const socket = this.sessions.getUserSocket(user.id);
+    //     socket && socket.emit(`onGroupCreate`, payload);
+    //   }
+    // });
+
+    const socketIds: string[] = [];
     payload.users.forEach((user) => {
       if (user.id !== ownerId) {
         const socket = this.sessions.getUserSocket(user.id);
-        socket && socket.emit(`onGroupCreate`, payload);
+        if (socket) socketIds.push(socket.id);
       }
     });
+
+    if (socketIds.length > 0) {
+      this.server.to(socketIds).emit('onGroupCreate', payload);
+    }
   }
 
   ////////////////////////////////////////// Group message ///////////////////////////////////
@@ -326,8 +335,20 @@ export class MessagingGateway
   async handleGroupMessageCreateEvent(payload: CreateGroupMessageResponse) {
     const { id } = payload.group;
     console.log('Inside group.message.create');
-    const ROM = `group-${id}`;
-    this.server.to(ROM).emit('onGroupMessage', payload);
+    // const ROM = `group-${id}`;
+    // this.server.to(ROM).emit('onGroupMessage', payload);
+    const group = await this.groupServices.findGroupById(id);
+    if (!group) return;
+
+    const socketIds: string[] = [];
+    group.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      if (socket) socketIds.push(socket.id);
+    });
+
+    if (socketIds.length > 0) {
+      this.server.to(socketIds).emit('onGroupMessage', payload);
+    }
   }
 
   // get socket emit group.message.delete from groups-messages.controller.ts
@@ -338,8 +359,17 @@ export class MessagingGateway
     const group = await this.groupServices.findGroupById(message.group.id);
     if (!group) return;
 
-    const ROM = `group-${message.group.id}`;
-    this.server.to(ROM).emit('onGroupMessageDelete', message);
+    // const ROM = `group-${message.group.id}`;
+    // this.server.to(ROM).emit('onGroupMessageDelete', message);
+    const socketIds: string[] = [];
+    group.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      if (socket) socketIds.push(socket.id);
+    });
+
+    if (socketIds.length > 0) {
+      this.server.to(socketIds).emit('onGroupMessageDelete', message);
+    }
   }
 
   // message.group.edit
@@ -349,8 +379,18 @@ export class MessagingGateway
     const group = await this.groupServices.findGroupById(payload.group.id);
     if (!group) return;
 
-    const ROM = `group-${group.id}`;
-    this.server.to(ROM).emit('onGroupMessageEdit', payload);
+    // const ROM = `group-${group.id}`;
+    // this.server.to(ROM).emit('onGroupMessageEdit', payload);
+
+    const socketIds: string[] = [];
+    group.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      if (socket) socketIds.push(socket.id);
+    });
+
+    if (socketIds.length > 0) {
+      this.server.to(socketIds).emit('onGroupMessageEdit', payload);
+    }
   }
 
   /**
@@ -364,31 +404,77 @@ export class MessagingGateway
     const { group, user } = payload;
 
     const recipientSocket = this.sessions.getUserSocket(user.id);
-
-    const ROM = `group/${group.id}`;
-    this.server.to(ROM).emit('onGroupReceivedNewUser', group);
-
     recipientSocket && recipientSocket.emit('onGroupUserAdd', group);
+
+    // const ROM = `group/${group.id}`;
+    // this.server.to(ROM).emit('onGroupReceivedNewUser', group);
+    const socketIds: string[] = [];
+    group.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      if (socket) socketIds.push(socket.id);
+    });
+
+    if (socketIds.length > 0) {
+      this.server.to(socketIds).emit('onGroupReceivedNewUser', payload);
+    }
+  }
+
+  //group.owner.update
+  @OnEvent('group.owner.update')
+  async handleUpdateGroupOwner(payload: Group) {
+    // forloop and send socket emit one time
+    const socketIds: string[] = [];
+    payload.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      if (socket) socketIds.push(socket.id);
+    });
+
+    if (socketIds.length > 0) {
+      this.server.to(socketIds).emit('onGroupOwnerUpdate', payload);
+    }
   }
 
   //group.remove.user
   @OnEvent('group.remove.user')
   handleGroupRemoveUser(payload: RemoveGroupRecipientResponse) {
     const { group, user } = payload;
-    const ROM = `group/${group.id}`;
+    const ROM_NAME = `group/${group.id}`;
     const removedUserSocket = this.sessions.getUserSocket(user.id);
 
     if (removedUserSocket) {
-      removedUserSocket.emit('onGroupUserRemoved', payload);
-      removedUserSocket.leave(ROM);
+      removedUserSocket.emit('onGroupUserRemoved', group);
+      removedUserSocket.leave(ROM_NAME);
     }
 
     // send socket to all user in group
-    this.server.to(ROM).emit('onGroupRecipientRemoved', payload);
+    // when online group socket emit from client side, => change group.users
 
+    // this.server.to(ROM_NAME).emit('onGroupRecipientRemoved', payload);
+    // forloop and send socket emit one time
+
+    // const socketIds: string[] = [];
     // group.users.forEach((user) => {
     //   const socket = this.sessions.getUserSocket(user.id);
-    //   socket && socket.emit('onGroupRecipientRemoved', payload);
+    //   if (socket) socketIds.push(socket.id);
     // });
+
+    // if (socketIds.length > 0) {
+    //   this.server.to(socketIds).emit('onGroupRecipientRemoved', payload);
+    // }
+  }
+
+  @OnEvent('group.user.leave')
+  handleGroupUserLeave(payload) {
+    const { group, userId }: { group: Group; userId: number } = payload;
+
+    const socketIds: string[] = [];
+    group.users.forEach((user) => {
+      const socket = this.sessions.getUserSocket(user.id);
+      if (socket) socketIds.push(socket.id);
+    });
+
+    if (socketIds.length > 0) {
+      this.server.to(socketIds).emit('onGroupUserLeave', payload);
+    }
   }
 }

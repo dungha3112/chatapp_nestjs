@@ -5,6 +5,7 @@ import {
   Inject,
   Param,
   ParseIntPipe,
+  Patch,
   Post,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
@@ -13,6 +14,7 @@ import { AuthUser } from 'src/utils/decorators';
 import { Group, User } from 'src/utils/typeorm';
 import { CreateGroupDto } from '../dtos/CreateGroup.dto';
 import { IGroupServices } from '../interfaces/group';
+import { TranferOwnerDto } from '../dtos/TranferOwner.dto';
 
 @Controller(Routes.GROUPS)
 export class GroupController {
@@ -39,7 +41,21 @@ export class GroupController {
   }
 
   @Get('/:groupId')
-  async getGroupById(@Param('groupId', ParseIntPipe) groupId: number) {
+  async getGroupById(
+    @Param('groupId', ParseIntPipe) groupId: number,
+  ): Promise<Group> {
     return await this.groupServices.findGroupById(groupId);
+  }
+
+  @Patch('/:groupId/owner')
+  async updateGroupOwner(
+    @AuthUser() { id: userId }: User,
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Body() { newOwnerId }: TranferOwnerDto,
+  ): Promise<Group> {
+    const params = { userId, groupId, newOwnerId };
+    const res = await this.groupServices.updateGroupOwner(params);
+    this.eventEmitter.emit('group.owner.update', res);
+    return res;
   }
 }

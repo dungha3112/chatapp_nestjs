@@ -6,10 +6,8 @@ import {
   Param,
   ParseIntPipe,
   Post,
-  UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
-import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
 import { Group, User } from 'src/utils/typeorm';
@@ -20,7 +18,7 @@ import {
 import { AddGroupRecipientDto } from '../dtos/AddGroupRecipient.dto';
 import { IGroupRecipientsServices } from '../interfaces/group-recipients';
 
-@UseGuards(AuthenticatedGuard)
+// @UseGuards(AuthenticatedGuard)
 @Controller(Routes.GROUPS_RECIPIENTS)
 export class GroupRecipientsController {
   constructor(
@@ -42,6 +40,20 @@ export class GroupRecipientsController {
     const res = await this.groupRecipientsServices.addGroupRecipient(params);
     this.eventEmitter.emit('group.add.user', res);
 
+    return res;
+  }
+
+  // api/groups/:groupId/recipients/leave
+  @Delete('leave')
+  async userLeaveGroup(
+    @AuthUser() { id: userId }: User,
+    @Param('groupId', ParseIntPipe) groupId: number,
+  ) {
+    console.log({ userId, groupId });
+    const params = { userId, groupId };
+
+    const res = await this.groupRecipientsServices.userLeaveGroup(params);
+    this.eventEmitter.emit('group.user.leave', { group: res, userId });
     return res;
   }
 

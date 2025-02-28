@@ -5,6 +5,7 @@ import {
   AccessGroupParams,
   CreateGroupParams,
   GetGroupMessagesParams,
+  TranferOwnerParams,
   UpdateGroupParams,
 } from 'src/utils/types';
 import { Repository } from 'typeorm';
@@ -12,6 +13,8 @@ import { IGroupServices } from '../interfaces/group';
 import { Services } from 'src/utils/constants';
 import { IuserServices } from 'src/users/user';
 import { GroupNotFoundException } from '../exceptions/GroupNotFound';
+import { NotGroupOwnerException } from '../exceptions/NotGroupOwner';
+import { GroupOwnerTransferException } from '../exceptions/GroupOwnerTransfer';
 
 @Injectable()
 export class GroupService implements IGroupServices {
@@ -110,8 +113,7 @@ export class GroupService implements IGroupServices {
       .limit(limit)
       .getOne();
 
-    if (!group)
-      throw new HttpException('Group not found', HttpStatus.BAD_REQUEST);
+    if (!group) throw new GroupNotFoundException();
 
     return group;
   }
@@ -124,5 +126,30 @@ export class GroupService implements IGroupServices {
 
     const user = group.users.find((u) => u.id === userId);
     return user;
+  }
+
+  async updateGroupOwner(params: TranferOwnerParams): Promise<Group> {
+    const { groupId, userId, newOwnerId } = params;
+
+    const group = await this.findGroupById(groupId);
+    if (!group) throw new GroupNotFoundException();
+
+    if (group.owner.id !== userId)
+      throw new GroupOwnerTransferException('Insufficient Permissions');
+
+    if (group.owner.id === newOwnerId)
+      throw new GroupOwnerTransferException(
+        'Cannot Transfer Owner to yourself',
+      );
+
+    const newOwner = await this.userServices.findUser({ id: newOwnerId });
+    if (!newOwner)
+      throw new HttpException('User not found.', HttpStatus.BAD_REQUEST);
+
+    group.owner = newOwner;
+
+    const newGroup = await this.saveGroup(group);
+
+    return newGroup;
   }
 }

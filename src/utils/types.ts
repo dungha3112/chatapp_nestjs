@@ -184,3 +184,22 @@ export type RemoveGroupRecipientResponse = {
   group: Group;
   user: User;
 };
+
+// TranferOwnerParams
+export type TranferOwnerParams = {
+  userId: number;
+  groupId: number;
+  newOwnerId: number;
+};
+
+//UserLeaveGroupParams
+export type UserLeaveGroupParams = {
+  userId: number;
+  groupId: number;
+};
+
+//CheckUserInGroupParams
+export type CheckUserInGroupParams = {
+  userId: number;
+  groupId: number;
+};
