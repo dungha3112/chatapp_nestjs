@@ -38,25 +38,13 @@ export class GroupRecipientsController {
     const params = { ownerId, groupId, email };
 
     const res = await this.groupRecipientsServices.addGroupRecipient(params);
-    this.eventEmitter.emit('group.add.user', res);
+    this.eventEmitter.emit('group.user.add', res);
 
     return res;
   }
 
-  // api/groups/:groupId/recipients/leave
-  @Delete('leave')
-  async userLeaveGroup(
-    @AuthUser() { id: userId }: User,
-    @Param('groupId', ParseIntPipe) groupId: number,
-  ) {
-    console.log({ userId, groupId });
-    const params = { userId, groupId };
-
-    const res = await this.groupRecipientsServices.userLeaveGroup(params);
-    this.eventEmitter.emit('group.user.leave', { group: res, userId });
-    return res;
-  }
-
+  // owner remove user to list group.users
+  // api/groups/:groupId/recipients/:removeUserId
   @Delete('/:removeUserId')
   async removeGroupRecipient(
     @AuthUser() { id: ownerId }: User,
@@ -67,7 +55,7 @@ export class GroupRecipientsController {
     const res: RemoveGroupRecipientResponse =
       await this.groupRecipientsServices.removeGroupRecipient(params);
 
-    this.eventEmitter.emit('group.remove.user', res);
+    this.eventEmitter.emit('group.user.remove', res);
     return res.group;
   }
 }

@@ -3,10 +3,12 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Group, GroupMessage, User } from 'src/utils/typeorm';
 import {
   AccessGroupParams,
+  CheckUserInGroupParams,
   CreateGroupParams,
   GetGroupMessagesParams,
   TranferOwnerParams,
   UpdateGroupParams,
+  UserLeaveGroupParams,
 } from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IGroupServices } from '../interfaces/group';
@@ -15,6 +17,7 @@ import { IuserServices } from 'src/users/user';
 import { GroupNotFoundException } from '../exceptions/GroupNotFound';
 import { NotGroupOwnerException } from '../exceptions/NotGroupOwner';
 import { GroupOwnerTransferException } from '../exceptions/GroupOwnerTransfer';
+import { GroupParticipantNotFoundException } from '../exceptions/GroupParticipantNotFound';
 
 @Injectable()
 export class GroupService implements IGroupServices {
@@ -151,5 +154,37 @@ export class GroupService implements IGroupServices {
     const newGroup = await this.saveGroup(group);
 
     return newGroup;
+  }
+
+  async userLeaveGroup(params: UserLeaveGroupParams): Promise<Group> {
+    const { groupId, userId } = params;
+
+    const group = await this.isUserInGroup(params);
+    if (userId === group.owner.id)
+      throw new HttpException(
+        'Cannot leave group as owner',
+        HttpStatus.BAD_REQUEST,
+      );
+
+    group.users = group.users.filter((u) => u.id !== userId);
+
+    const updateGroup = await this.saveGroup(group);
+    return updateGroup;
+  }
+
+  async isUserInGroup(params: CheckUserInGroupParams) {
+    const { userId, groupId } = params;
+
+    const group = await this.findGroupById(groupId);
+    console.log({ group });
+
+    if (!group) throw new GroupNotFoundException();
+
+    const user = group.users.find((u) => u.id === userId);
+    console.log({ user });
+
+    if (!user) throw new GroupParticipantNotFoundException();
+
+    return group;
   }
 }

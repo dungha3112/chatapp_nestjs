@@ -6,6 +6,7 @@ export interface IGatewaySessionManager {
   setUserSocket(id: number, socket: AuthenticatedSocket): void;
   removeUserSocket(id: number): void;
   getSockets(): Map<number, AuthenticatedSocket>;
+  getAllOnlineUserIds(): Set<number>;
 }
 
 @Injectable()
@@ -26,5 +27,9 @@ export class GatewaySessionManager implements IGatewaySessionManager {
 
   getSockets(): Map<number, AuthenticatedSocket> {
     return this.sessions;
+  }
+
+  getAllOnlineUserIds(): Set<number> {
+    return new Set(this.sessions.keys());
   }
 }

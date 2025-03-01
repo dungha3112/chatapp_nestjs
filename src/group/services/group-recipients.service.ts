@@ -83,36 +83,4 @@ export class GroupRecipientsServices implements IGroupRecipientsServices {
 
     return { group: saveGroup, user: userToBeRemoved };
   }
-
-  async userLeaveGroup(params: UserLeaveGroupParams): Promise<Group> {
-    const { groupId, userId } = params;
-
-    const group = await this.isUserInGroup(params);
-    if (userId === group.owner.id)
-      throw new HttpException(
-        'Cannot leave group as owner',
-        HttpStatus.BAD_REQUEST,
-      );
-
-    group.users = group.users.filter((u) => u.id !== userId);
-
-    const updateGroup = await this.groupServices.saveGroup(group);
-    return updateGroup;
-  }
-
-  async isUserInGroup(params: CheckUserInGroupParams) {
-    const { userId, groupId } = params;
-
-    const group = await this.groupServices.findGroupById(groupId);
-    console.log({ group });
-
-    if (!group) throw new GroupNotFoundException();
-
-    const user = group.users.find((u) => u.id === userId);
-    console.log({ user });
-
-    if (!user) throw new GroupParticipantNotFoundException();
-
-    return group;
-  }
 }

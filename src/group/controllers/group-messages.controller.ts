@@ -77,7 +77,7 @@ export class GroupMessageController {
 
     const message = await this.groupMessageServices.editMessage(params);
 
-    this.eventEmitter.emit('message.group.edit', message);
+    this.eventEmitter.emit('group.message.update', message);
 
     return message;
   }

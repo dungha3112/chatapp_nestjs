@@ -51,3 +51,15 @@
       this.server.to(socketIds).emit('onGroupOwnerUpdate', payload);
     }
   }
+
+
+
+    // const socketIds: string[] = [];
+    // payload.users.forEach((user) => {
+    //   const socket = this.sessions.getUserSocket(user.id);
+    //   if (socket) socketIds.push(socket.id);
+    // });
+
+    // if (socketIds.length > 0) {
+    //   this.server.to(socketIds).emit('onGroupOwnerUpdate', payload);
+    // }

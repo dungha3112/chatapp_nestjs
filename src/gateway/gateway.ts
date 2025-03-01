@@ -1,4 +1,4 @@
-import { AuthenticatedSocket } from './../utils/interfaces';
+import { AuthenticatedSocket } from 'src/utils/interfaces';
 import { Inject } from '@nestjs/common';
 import { OnEvent } from '@nestjs/event-emitter';
 import {
@@ -60,6 +60,11 @@ export class MessagingGateway
   handleDisconnect(socket: AuthenticatedSocket) {
     console.log('disconnected ...');
     console.log(`${socket.user.email} disconnected.`);
+    socket.rooms.forEach((room) => {
+      if (room !== socket.id) {
+        socket.leave(room);
+      }
+    });
     this.sessions.removeUserSocket(socket.user.id);
   }
 
@@ -81,15 +86,20 @@ export class MessagingGateway
     const group = await this.groupServices.findGroupById(parseInt(groupId));
 
     if (!group) return;
-    const onlineUsers = [];
-    const offlineUsers = [];
 
-    group.users.forEach((user) => {
-      const socket = this.sessions.getUserSocket(user.id);
-      socket ? onlineUsers.push(user) : offlineUsers.push(user);
-    });
+    const onlineUserIds = new Set(this.sessions.getAllOnlineUserIds());
 
-    client.emit('onlineGroupUsersReceived', { onlineUsers, offlineUsers });
+    const onlineUsers = group.users.filter((user) =>
+      onlineUserIds.has(user.id),
+    );
+    const offlineUsers = group.users.filter(
+      (user) => !onlineUserIds.has(user.id),
+    );
+
+    // client.emit('onlineGroupUsersReceived', { onlineUsers, offlineUsers });
+    this.server
+      .to(`group-${groupId}`)
+      .emit('onlineGroupUsersReceived', { onlineUsers, offlineUsers });
   }
 
   /**
@@ -297,10 +307,10 @@ export class MessagingGateway
     console.log(client.rooms);
     console.log('onGroupLeave end');
 
-    client.leave(`conversation-${data.groupId}`);
+    client.leave(`group-${data.groupId}`);
     console.log(client.rooms);
 
-    client.to(`conversation-${data.groupId}`).emit('userLeave');
+    client.to(`group-${data.groupId}`).emit('userLeave');
   }
 
   // get socket emit group.create from group.controoler
@@ -335,20 +345,11 @@ export class MessagingGateway
   async handleGroupMessageCreateEvent(payload: CreateGroupMessageResponse) {
     const { id } = payload.group;
     console.log('Inside group.message.create');
-    // const ROM = `group-${id}`;
-    // this.server.to(ROM).emit('onGroupMessage', payload);
+
     const group = await this.groupServices.findGroupById(id);
     if (!group) return;
-
-    const socketIds: string[] = [];
-    group.users.forEach((user) => {
-      const socket = this.sessions.getUserSocket(user.id);
-      if (socket) socketIds.push(socket.id);
-    });
-
-    if (socketIds.length > 0) {
-      this.server.to(socketIds).emit('onGroupMessage', payload);
-    }
+    const ROM = `group-${id}`;
+    this.server.to(ROM).emit('onGroupMessage', payload);
   }
 
   // get socket emit group.message.delete from groups-messages.controller.ts
@@ -359,38 +360,19 @@ export class MessagingGateway
     const group = await this.groupServices.findGroupById(message.group.id);
     if (!group) return;
 
-    // const ROM = `group-${message.group.id}`;
-    // this.server.to(ROM).emit('onGroupMessageDelete', message);
-    const socketIds: string[] = [];
-    group.users.forEach((user) => {
-      const socket = this.sessions.getUserSocket(user.id);
-      if (socket) socketIds.push(socket.id);
-    });
-
-    if (socketIds.length > 0) {
-      this.server.to(socketIds).emit('onGroupMessageDelete', message);
-    }
+    const ROM = `group-${message.group.id}`;
+    this.server.to(ROM).emit('onGroupMessageDelete', message);
   }
 
-  // message.group.edit
+  // group.message.update
   //onGroupMessageEdit
-  @OnEvent('message.group.edit')
+  @OnEvent('group.message.update')
   async handleGroupMessageEditEvent(payload: GroupMessage) {
     const group = await this.groupServices.findGroupById(payload.group.id);
     if (!group) return;
 
-    // const ROM = `group-${group.id}`;
-    // this.server.to(ROM).emit('onGroupMessageEdit', payload);
-
-    const socketIds: string[] = [];
-    group.users.forEach((user) => {
-      const socket = this.sessions.getUserSocket(user.id);
-      if (socket) socketIds.push(socket.id);
-    });
-
-    if (socketIds.length > 0) {
-      this.server.to(socketIds).emit('onGroupMessageEdit', payload);
-    }
+    const ROM = `group-${group.id}`;
+    this.server.to(ROM).emit('onGroupMessageEdit', payload);
   }
 
   /**
@@ -399,82 +381,71 @@ export class MessagingGateway
    */
 
   //group.add.user
-  @OnEvent('group.add.user')
+  @OnEvent('group.user.add')
   handleGroupUserAdd(payload: AddGroupUserResponse) {
     const { group, user } = payload;
 
+    const ROM_NAME = `group-${group.id}`;
+    this.server.to(ROM_NAME).emit('onGroupReceivedNewUser', group);
+
     const recipientSocket = this.sessions.getUserSocket(user.id);
     recipientSocket && recipientSocket.emit('onGroupUserAdd', group);
-
-    // const ROM = `group/${group.id}`;
-    // this.server.to(ROM).emit('onGroupReceivedNewUser', group);
-    const socketIds: string[] = [];
-    group.users.forEach((user) => {
-      const socket = this.sessions.getUserSocket(user.id);
-      if (socket) socketIds.push(socket.id);
-    });
-
-    if (socketIds.length > 0) {
-      this.server.to(socketIds).emit('onGroupReceivedNewUser', payload);
-    }
   }
 
   //group.owner.update
   @OnEvent('group.owner.update')
-  async handleUpdateGroupOwner(payload: Group) {
-    // forloop and send socket emit one time
-    const socketIds: string[] = [];
-    payload.users.forEach((user) => {
-      const socket = this.sessions.getUserSocket(user.id);
-      if (socket) socketIds.push(socket.id);
-    });
-
-    if (socketIds.length > 0) {
-      this.server.to(socketIds).emit('onGroupOwnerUpdate', payload);
-    }
+  handleUpdateGroupOwner(payload: Group) {
+    const room = `group-${payload.id}`;
+    this.server.to(room).emit('onGroupOwnerUpdate', payload);
   }
 
-  //group.remove.user
-  @OnEvent('group.remove.user')
-  handleGroupRemoveUser(payload: RemoveGroupRecipientResponse) {
+  //group.user.remove
+  @OnEvent('group.user.remove')
+  async handleGroupRemoveUser(payload: RemoveGroupRecipientResponse) {
     const { group, user } = payload;
-    const ROM_NAME = `group/${group.id}`;
+    const ROM_NAME = `group-${group.id}`;
     const removedUserSocket = this.sessions.getUserSocket(user.id);
+
+    await this.handleGetOnlineGroupUsers(
+      { groupId: group.id },
+      removedUserSocket,
+    );
+    this.server.to(ROM_NAME).emit('onGroupRecipientRemoved', group);
 
     if (removedUserSocket) {
       removedUserSocket.emit('onGroupUserRemoved', group);
+
       removedUserSocket.leave(ROM_NAME);
     }
 
     // send socket to all user in group
     // when online group socket emit from client side, => change group.users
-
-    // this.server.to(ROM_NAME).emit('onGroupRecipientRemoved', payload);
-    // forloop and send socket emit one time
-
-    // const socketIds: string[] = [];
-    // group.users.forEach((user) => {
-    //   const socket = this.sessions.getUserSocket(user.id);
-    //   if (socket) socketIds.push(socket.id);
-    // });
-
-    // if (socketIds.length > 0) {
-    //   this.server.to(socketIds).emit('onGroupRecipientRemoved', payload);
-    // }
   }
 
   @OnEvent('group.user.leave')
-  handleGroupUserLeave(payload) {
+  async handleGroupUserLeave(payload) {
     const { group, userId }: { group: Group; userId: number } = payload;
 
-    const socketIds: string[] = [];
-    group.users.forEach((user) => {
-      const socket = this.sessions.getUserSocket(user.id);
-      if (socket) socketIds.push(socket.id);
-    });
+    const ROOM_NAME = `group-${group.id}`;
+    const { rooms } = this.server.sockets.adapter;
 
-    if (socketIds.length > 0) {
-      this.server.to(socketIds).emit('onGroupUserLeave', payload);
+    const socketInRoom = rooms.get(ROOM_NAME);
+    const leftUserSocket = this.sessions.getUserSocket(userId);
+
+    if (leftUserSocket && socketInRoom) {
+      if (socketInRoom.has(leftUserSocket.id)) {
+        return this.server.to(ROOM_NAME).emit('onGroupParticipantLeft', group);
+      } else {
+        leftUserSocket.emit('onGroupParticipantLeft', payload);
+        this.server.to(ROOM_NAME).emit('onGroupParticipantLeft', payload);
+        return;
+      }
     }
+
+    if (leftUserSocket && !socketInRoom) {
+      return leftUserSocket.emit('onGroupParticipantLeft', payload);
+    }
+
+    await this.handleGetOnlineGroupUsers({ groupId: group.id }, leftUserSocket);
   }
 }

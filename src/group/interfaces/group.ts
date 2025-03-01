@@ -1,10 +1,12 @@
 import { Group, User } from 'src/utils/typeorm';
 import {
   AccessGroupParams,
+  CheckUserInGroupParams,
   CreateGroupParams,
   GetGroupMessagesParams,
   TranferOwnerParams,
   UpdateGroupParams,
+  UserLeaveGroupParams,
 } from 'src/utils/types';
 
 export interface IGroupServices {
@@ -23,4 +25,8 @@ export interface IGroupServices {
   hasAccess(params: AccessGroupParams): Promise<User>;
 
   updateGroupOwner(params: TranferOwnerParams): Promise<Group>;
+
+  userLeaveGroup(params: UserLeaveGroupParams): Promise<Group>;
+
+  isUserInGroup(params: CheckUserInGroupParams);
 }

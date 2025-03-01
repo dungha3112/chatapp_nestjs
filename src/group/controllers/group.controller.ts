@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
   Inject,
   Param,
@@ -56,6 +57,19 @@ export class GroupController {
     const params = { userId, groupId, newOwnerId };
     const res = await this.groupServices.updateGroupOwner(params);
     this.eventEmitter.emit('group.owner.update', res);
+    return res;
+  }
+
+  // api/groups/:groupId/leave
+  @Delete('/:groupId/leave')
+  async userLeaveGroup(
+    @AuthUser() { id: userId }: User,
+    @Param('groupId', ParseIntPipe) groupId: number,
+  ): Promise<Group> {
+    const params = { userId, groupId };
+
+    const res = await this.groupServices.userLeaveGroup(params);
+    this.eventEmitter.emit('group.user.leave', { group: res, userId });
     return res;
   }
 }
