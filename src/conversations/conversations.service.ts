@@ -72,14 +72,9 @@ export class ConversationsService implements IConversationsServices {
       );
     }
 
-    const conversationExists = await this.conversationRepository.findOne({
-      where: [
-        { creator: { id: creator.id }, recipient: { id: recipient.id } },
-        { creator: { id: recipient.id }, recipient: { id: creator.id } },
-      ],
-    });
+    const existsConversation = await this.isCreated(creator.id, recipient.id);
 
-    if (conversationExists)
+    if (existsConversation)
       throw new HttpException(
         'Conversation already exists',
         HttpStatus.BAD_REQUEST,
@@ -111,6 +106,18 @@ export class ConversationsService implements IConversationsServices {
     return updateConversation;
   }
 
+  async isCreated(
+    creatorId: number,
+    recipientId: number,
+  ): Promise<Conversation | undefined> {
+    return await this.conversationRepository.findOne({
+      where: [
+        { creator: { id: creatorId }, recipient: { id: recipientId } },
+        { creator: { id: recipientId }, recipient: { id: creatorId } },
+      ],
+    });
+  }
+
   /**
    * findById
    * @param id
@@ -128,9 +135,6 @@ export class ConversationsService implements IConversationsServices {
         // 'messages.author',
       ],
     });
-
-    // delete conversation.creator.password;
-    // delete conversation.recipient.password;
 
     return conversation;
   }

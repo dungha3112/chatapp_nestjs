@@ -23,4 +23,9 @@ export interface IConversationsServices {
   update(params: UpdateConversationParams);
 
   hasAccess(params: AccessConversationParams);
+
+  isCreated(
+    creatorId: number,
+    recipientId: number,
+  ): Promise<Conversation | undefined>;
 }
