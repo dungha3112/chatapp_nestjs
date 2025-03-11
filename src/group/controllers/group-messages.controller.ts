@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   Inject,
@@ -8,6 +9,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { CreateMessageDto } from 'src/messages/dtos/CreateMessageDto';
@@ -43,11 +45,16 @@ export class GroupMessageController {
   }
 
   @Get()
-  async getGroupMessagesById(@Param('groupId', ParseIntPipe) groupId: number) {
-    const messages =
-      await this.groupMessageServices.getGroupMessagesById(groupId);
+  async getGroupMessagesById(
+    @Param('groupId', ParseIntPipe) groupId: number,
+    @Query('skip', new DefaultValuePipe(1), ParseIntPipe) skip: number,
+  ) {
+    const res = await this.groupMessageServices.getGroupMessagesById(
+      groupId,
+      skip,
+    );
 
-    return { id: groupId, messages };
+    return { id: groupId, messages: res[0], count: res[1] };
   }
 
   // api/groups/:groupId/messages/:messageId

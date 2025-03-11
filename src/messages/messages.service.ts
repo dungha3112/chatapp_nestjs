@@ -72,14 +72,27 @@ export class MessagesService implements IMessageServices {
    * @param id
    * @returns
    */
-  async getMessageByConversationId(id: number): Promise<Message[]> {
+  async getMessageByConversationId(
+    id: number,
+    skip: number,
+  ): Promise<[Message[], number]> {
     const conversation = await this.conversationsServices.findById(id);
     if (!conversation) throw new ConversationNotFoundException();
 
-    const messages = await this.messageRepository.find({
+    const take = 10;
+    const total = await this.messageRepository.count({
+      where: { conversation: { id } },
+    });
+    const maxTake = Math.ceil(total / take);
+    const currentTake = Math.min(skip, maxTake);
+    const maxSkip = (currentTake - 1) * take;
+
+    const messages = await this.messageRepository.findAndCount({
       where: { conversation: { id: id } },
       relations: ['author'],
       order: { createdAt: 'DESC' },
+      take,
+      skip,
     });
 
     return messages;

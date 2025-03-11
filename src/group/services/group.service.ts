@@ -15,7 +15,6 @@ import { IGroupServices } from '../interfaces/group';
 import { Services } from 'src/utils/constants';
 import { IuserServices } from 'src/users/user';
 import { GroupNotFoundException } from '../exceptions/GroupNotFound';
-import { NotGroupOwnerException } from '../exceptions/NotGroupOwner';
 import { GroupOwnerTransferException } from '../exceptions/GroupOwnerTransfer';
 import { GroupParticipantNotFoundException } from '../exceptions/GroupParticipantNotFound';
 

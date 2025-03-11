@@ -1,6 +1,7 @@
 import {
   Body,
   Controller,
+  DefaultValuePipe,
   Delete,
   Get,
   HttpStatus,
@@ -9,6 +10,7 @@ import {
   ParseIntPipe,
   Patch,
   Post,
+  Query,
   Res,
   UseGuards,
 } from '@nestjs/common';
@@ -48,10 +50,14 @@ export class MessagesController {
   @Get()
   async getMessagesByConversationId(
     @Param('conversationId', ParseIntPipe) conversationId: number,
+    @Query('skip', new DefaultValuePipe(1), ParseIntPipe) skip: number,
   ) {
-    const messages =
-      await this.messageService.getMessageByConversationId(conversationId);
-    return { id: conversationId, messages };
+    const res = await this.messageService.getMessageByConversationId(
+      conversationId,
+      skip,
+    );
+    return { id: conversationId, messages: res[0], count: res[1] };
+    // return { id: conversationId, messages: res };
   }
 
   // api/conversations/:conversationId/messages/:messageId
