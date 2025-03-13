@@ -15,6 +15,7 @@ import { NotGroupOwnerException } from '../exceptions/NotGroupOwner';
 import { IGroupServices } from '../interfaces/group';
 import { IGroupRecipientsServices } from '../interfaces/group-recipients';
 import { Group } from 'src/utils/typeorm';
+import { UserNotFoundException } from 'src/users/exceptions/UserNotFound';
 
 @Injectable()
 export class GroupRecipientsServices implements IGroupRecipientsServices {
@@ -72,8 +73,7 @@ export class GroupRecipientsServices implements IGroupRecipientsServices {
     if (group.owner.id !== ownerId) throw new NotGroupOwnerException();
 
     const checkUserInGroup = group.users.find((u) => u.id === removeUserId);
-    if (!checkUserInGroup)
-      throw new HttpException('User not in group.', HttpStatus.BAD_REQUEST);
+    if (!checkUserInGroup) throw new UserNotFoundException();
 
     const newUserGroup = group.users.filter((user) => user.id !== removeUserId);
 

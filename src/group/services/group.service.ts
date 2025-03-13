@@ -17,6 +17,7 @@ import { IuserServices } from 'src/users/user';
 import { GroupNotFoundException } from '../exceptions/GroupNotFound';
 import { GroupOwnerTransferException } from '../exceptions/GroupOwnerTransfer';
 import { GroupParticipantNotFoundException } from '../exceptions/GroupParticipantNotFound';
+import { UserNotFoundException } from 'src/users/exceptions/UserNotFound';
 
 @Injectable()
 export class GroupService implements IGroupServices {
@@ -145,8 +146,7 @@ export class GroupService implements IGroupServices {
       );
 
     const newOwner = await this.userServices.findUser({ id: newOwnerId });
-    if (!newOwner)
-      throw new HttpException('User not found.', HttpStatus.BAD_REQUEST);
+    if (!newOwner) throw new UserNotFoundException();
 
     group.owner = newOwner;
 

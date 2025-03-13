@@ -203,3 +203,19 @@ export type CheckUserInGroupParams = {
   userId: number;
   groupId: number;
 };
+
+/**
+ *
+ * FRIEND
+ */
+export type CreateFriendParams = {
+  sender: User;
+  email: string;
+};
+
+export type FriendRequestStatus = 'accepted' | 'pending' | 'rejected';
+
+export type FriendRequestParams = {
+  id: number;
+  userId: number;
+};

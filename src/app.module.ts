@@ -10,6 +10,8 @@ import { MessagesModule } from './messages/messages.module';
 import { GatewayModule } from './gateway/gateway.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GroupModule } from './group/group.module';
+import { FriendsModule } from './friends/friends.module';
+import { FriendRequestsModule } from './friend-requests/friend-requests.module';
 
 @Module({
   imports: [
@@ -33,6 +35,8 @@ import { GroupModule } from './group/group.module';
     MessagesModule,
     GatewayModule,
     GroupModule,
+    FriendRequestsModule,
+    FriendsModule,
   ],
   controllers: [],
   providers: [],

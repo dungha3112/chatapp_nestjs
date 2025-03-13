@@ -12,6 +12,7 @@ import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Services } from 'src/utils/constants';
 import { IGroupServices } from '../interfaces/group';
 import { GroupNotFoundException } from '../exceptions/GroupNotFound';
+import { UserNotFoundException } from 'src/users/exceptions/UserNotFound';
 
 @Injectable()
 export class GroupMessageServices implements IGroupMessageServices {
@@ -36,8 +37,7 @@ export class GroupMessageServices implements IGroupMessageServices {
     if (!group) throw new GroupNotFoundException();
 
     const findUser = group.users.find((u) => u.id === user.id);
-    if (!findUser)
-      throw new HttpException('User not in group.', HttpStatus.BAD_REQUEST);
+    if (!findUser) throw new UserNotFoundException();
 
     const newGroupMessage = this.groupMessageRepository.create({
       author: user,
@@ -72,8 +72,8 @@ export class GroupMessageServices implements IGroupMessageServices {
       where: { group: { id: groupId } },
       relations: ['author'],
       order: { createdAt: 'DESC' },
-      take: 10,
-      skip: skip,
+      // take: 10,
+      // skip: skip,
     });
 
     return messages;

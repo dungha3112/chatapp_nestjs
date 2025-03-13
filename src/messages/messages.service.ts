@@ -91,8 +91,8 @@ export class MessagesService implements IMessageServices {
       where: { conversation: { id: id } },
       relations: ['author'],
       order: { createdAt: 'DESC' },
-      take,
-      skip,
+      // take,
+      // skip,
     });
 
     return messages;
