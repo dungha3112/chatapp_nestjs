@@ -1,6 +1,12 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { IFriendRequestServices } from './friend-requests';
-import { CreateFriendParams, FriendRequestParams } from 'src/utils/types';
+import {
+  CancelFriendRequestParams,
+  CreateFriendParams,
+  DeleteFriendRequestParams,
+  FriendRequestParams,
+  RejectFriendRequestParams,
+} from 'src/utils/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Friend, FriendRequest } from 'src/utils/typeorm';
 import { Repository } from 'typeorm';
@@ -13,6 +19,7 @@ import { FriendRequestNotFoundException } from './exceptions/FriendRequestNotFou
 import { FriendRequestAcceptedException } from './exceptions/FriendRequestAccepted';
 import { FriendRequestException } from './exceptions/FriendRequest';
 import { FriendRequestPending } from './exceptions/FriendRequestPending';
+import { FriendNotFoundException } from 'src/friends/exceptions/FriendNotFound';
 
 @Injectable()
 export class FriendRequestServices implements IFriendRequestServices {
@@ -28,6 +35,18 @@ export class FriendRequestServices implements IFriendRequestServices {
     @InjectRepository(Friend)
     private readonly friendRepository: Repository<Friend>,
   ) {}
+
+  async getFriendRequests(id: number): Promise<FriendRequest[]> {
+    const status = 'pending';
+
+    return await this.friendRequestRepository.find({
+      where: [
+        { sender: { id }, status },
+        { receiver: { id }, status },
+      ],
+      relations: ['receiver', 'sender'],
+    });
+  }
 
   async create(params: CreateFriendParams): Promise<FriendRequest> {
     const { sender, email } = params;
@@ -62,10 +81,7 @@ export class FriendRequestServices implements IFriendRequestServices {
     if (friendRequest.status === 'accepted')
       throw new FriendRequestAcceptedException();
 
-    if (
-      friendRequest.receiver.id !== userId ||
-      friendRequest.receiver.id === userId
-    )
+    if (friendRequest.receiver.id !== userId)
       throw new FriendRequestException();
 
     friendRequest.status = 'accepted';
@@ -76,7 +92,6 @@ export class FriendRequestServices implements IFriendRequestServices {
       sender: friendRequest.sender,
       receiver: friendRequest.receiver,
     });
-
     const saveFriend = await this.friendRepository.save(newFriend);
 
     return {
@@ -85,8 +100,35 @@ export class FriendRequestServices implements IFriendRequestServices {
     };
   }
 
-  findById(id: number): Promise<FriendRequest> {
-    return this.friendRequestRepository.findOne({
+  async reject(params: RejectFriendRequestParams): Promise<FriendRequest> {
+    const { id, userId } = params;
+
+    const friendRequest = await this.findById(id);
+    if (!friendRequest) throw new FriendRequestNotFoundException();
+
+    if (friendRequest.status === 'accepted')
+      throw new FriendRequestAcceptedException();
+
+    if (friendRequest.receiver.id !== userId)
+      throw new FriendRequestException();
+
+    friendRequest.status = 'rejected';
+    return this.friendRequestRepository.save(friendRequest);
+  }
+
+  async cancel({
+    id,
+    userId,
+  }: CancelFriendRequestParams): Promise<FriendRequest> {
+    const friendRequest = await this.findById(id);
+    if (!friendRequest) throw new FriendRequestNotFoundException();
+    if (friendRequest.sender.id === userId) throw new FriendRequestException();
+    await this.friendRequestRepository.delete({ id });
+    return friendRequest;
+  }
+
+  async findById(id: number): Promise<FriendRequest> {
+    return await this.friendRequestRepository.findOne({
       where: { id },
       relations: ['receiver', 'sender'],
     });
@@ -96,19 +138,34 @@ export class FriendRequestServices implements IFriendRequestServices {
     senderId: number,
     receiverId: any,
   ): Promise<FriendRequest | undefined> {
+    const status = 'pending';
+
     return await this.friendRequestRepository.findOne({
       where: [
         {
           sender: { id: senderId },
           receiver: { id: receiverId },
-          status: 'pending',
+          status,
         },
         {
           receiver: { id: senderId },
           sender: { id: receiverId },
-          status: 'pending',
+          status,
         },
       ],
     });
+  }
+
+  async delete(params: DeleteFriendRequestParams): Promise<FriendRequest> {
+    const { id, userId } = params;
+    const friend = await this.findById(id);
+    if (!friend) throw new FriendNotFoundException();
+
+    if (friend.sender.id !== userId || friend.receiver.id !== userId)
+      throw new FriendRequestException();
+
+    await this.friendRequestRepository.delete({ id });
+
+    return friend;
   }
 }

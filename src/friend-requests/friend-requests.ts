@@ -1,5 +1,11 @@
 import { Friend, FriendRequest } from 'src/utils/typeorm';
-import { CreateFriendParams, FriendRequestParams } from 'src/utils/types';
+import {
+  CancelFriendRequestParams,
+  CreateFriendParams,
+  DeleteFriendRequestParams,
+  FriendRequestParams,
+  RejectFriendRequestParams,
+} from 'src/utils/types';
 
 export interface IFriendRequestServices {
   create(params: CreateFriendParams): Promise<FriendRequest>;
@@ -13,5 +19,11 @@ export interface IFriendRequestServices {
     receiverId: number,
   ): Promise<FriendRequest | undefined>;
 
-  cancel();
+  cancel(params: CancelFriendRequestParams): Promise<FriendRequest>;
+
+  reject(params: RejectFriendRequestParams): Promise<FriendRequest>;
+
+  getFriendRequests(userId: number): Promise<FriendRequest[]>;
+
+  delete(params: DeleteFriendRequestParams): Promise<FriendRequest>;
 }

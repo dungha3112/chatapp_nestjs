@@ -1,6 +1,8 @@
 import {
   Body,
   Controller,
+  Delete,
+  Get,
   Inject,
   Param,
   ParseIntPipe,
@@ -19,6 +21,11 @@ export class FriendRequestController {
     @Inject(Services.FRIENDS_REQUESTS)
     private readonly friendRequestServices: IFriendRequestServices,
   ) {}
+
+  @Get()
+  async getFriendRequests(@AuthUser() { id }: User) {
+    return await this.friendRequestServices.getFriendRequests(id);
+  }
 
   @Post()
   async createFriendRequest(
@@ -39,13 +46,24 @@ export class FriendRequestController {
     return res;
   }
 
-  @Patch(':id/cancel')
+  // myself cancel
+  @Delete(':id/cancel')
   async cancelFriendRequest(
     @AuthUser() { id: userId }: User,
     @Param('id', ParseIntPipe) id: number,
   ) {
     const params = { id, userId };
     const res = await this.friendRequestServices.accept(params);
+    return res;
+  }
+
+  @Patch(':id/reject')
+  async rejectFriendRequest(
+    @AuthUser() { id: userId }: User,
+    @Param('id', ParseIntPipe) id: number,
+  ) {
+    const params = { id, userId };
+    const res = await this.friendRequestServices.reject(params);
     return res;
   }
 }

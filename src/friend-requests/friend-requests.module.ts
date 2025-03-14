@@ -20,5 +20,12 @@ import { UsersModule } from 'src/users/users.module';
       useClass: FriendRequestServices,
     },
   ],
+
+  exports: [
+    {
+      provide: Services.FRIENDS_REQUESTS,
+      useClass: FriendRequestServices,
+    },
+  ],
 })
 export class FriendRequestsModule {}

@@ -213,9 +213,28 @@ export type CreateFriendParams = {
   email: string;
 };
 
+export type DeleteFriendRequestParams = {
+  id: number;
+  userId: number;
+};
+
+/**
+ * FRIEND REQUESTS
+ */
+
 export type FriendRequestStatus = 'accepted' | 'pending' | 'rejected';
 
 export type FriendRequestParams = {
+  id: number;
+  userId: number;
+};
+
+export type CancelFriendRequestParams = {
+  id: number;
+  userId: number;
+};
+
+export type RejectFriendRequestParams = {
   id: number;
   userId: number;
 };
