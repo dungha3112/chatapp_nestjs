@@ -9,17 +9,21 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { Routes, Services } from 'src/utils/constants';
+import { Routes, ServerEvents, Services } from 'src/utils/constants';
 import { IFriendRequestServices } from './friend-requests';
 import { AuthUser } from 'src/utils/decorators';
 import { User } from 'src/utils/typeorm';
 import { CreateFriendDto } from './dtos/CreateFriend.dto';
+import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FriendRequestAcceptPayload } from 'src/utils/types';
 
 @Controller(Routes.FRIENDS_REQUESTS)
 export class FriendRequestController {
   constructor(
     @Inject(Services.FRIENDS_REQUESTS)
     private readonly friendRequestServices: IFriendRequestServices,
+
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Get()
@@ -33,6 +37,7 @@ export class FriendRequestController {
     @Body() { email }: CreateFriendDto,
   ) {
     const res = await this.friendRequestServices.create({ sender, email });
+    this.eventEmitter.emit(ServerEvents.FRIEND_REQUEST_CREATE, res);
     return res;
   }
 
@@ -40,20 +45,23 @@ export class FriendRequestController {
   async acceptFriendRequest(
     @AuthUser() { id: userId }: User,
     @Param('id', ParseIntPipe) id: number,
-  ) {
+  ): Promise<FriendRequestAcceptPayload> {
     const params = { id, userId };
     const res = await this.friendRequestServices.accept(params);
+    this.eventEmitter.emit(ServerEvents.FRIEND_REQUEST_ACCEPT, res.friend);
+
     return res;
   }
 
-  // myself cancel
+  // receiver cancel
   @Delete(':id/cancel')
   async cancelFriendRequest(
     @AuthUser() { id: userId }: User,
     @Param('id', ParseIntPipe) id: number,
   ) {
     const params = { id, userId };
-    const res = await this.friendRequestServices.accept(params);
+    const res = await this.friendRequestServices.cancel(params);
+    this.eventEmitter.emit(ServerEvents.FRIEND_REQUEST_CANCEL, res);
     return res;
   }
 
@@ -64,6 +72,8 @@ export class FriendRequestController {
   ) {
     const params = { id, userId };
     const res = await this.friendRequestServices.reject(params);
+    this.eventEmitter.emit(ServerEvents.FRIEND_REQUEST_REJECT, res);
+
     return res;
   }
 }

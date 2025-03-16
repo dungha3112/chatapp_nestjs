@@ -22,3 +22,12 @@ export enum Services {
   FRIENDS = 'FRIENDS_SERVICE',
   FRIENDS_REQUESTS = 'FRIENDS_REQUESTS_SERVICE',
 }
+
+export enum ServerEvents {
+  FRIEND_REQUEST_CREATE = 'friend.request.create',
+  FRIEND_REQUEST_ACCEPT = 'friend.request.accept',
+  FRIEND_REQUEST_CANCEL = 'friend.request.cancel',
+  FRIEND_REQUEST_REJECT = 'friend.request.reject',
+
+  FRIEND_DELETE = 'friend.delete',
+}

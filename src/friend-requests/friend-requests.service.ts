@@ -1,25 +1,26 @@
-import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { IFriendRequestServices } from './friend-requests';
+import { Inject, Injectable } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { FriendAlreadyExists } from 'src/friends/exceptions/FriendAlreadyExists';
+import { FriendNotFoundException } from 'src/friends/exceptions/FriendNotFound';
+import { IFriendsServices } from 'src/friends/friends';
+import { UserNotFoundException } from 'src/users/exceptions/UserNotFound';
+import { IuserServices } from 'src/users/user';
+import { Services } from 'src/utils/constants';
+import { Friend, FriendRequest } from 'src/utils/typeorm';
 import {
   CancelFriendRequestParams,
   CreateFriendParams,
   DeleteFriendRequestParams,
+  FriendRequestAcceptPayload,
   FriendRequestParams,
   RejectFriendRequestParams,
 } from 'src/utils/types';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Friend, FriendRequest } from 'src/utils/typeorm';
 import { Repository } from 'typeorm';
-import { Services } from 'src/utils/constants';
-import { IuserServices } from 'src/users/user';
-import { IFriendsServices } from 'src/friends/friends';
-import { UserNotFoundException } from 'src/users/exceptions/UserNotFound';
-import { FriendAlreadyExists } from 'src/friends/exceptions/FriendAlreadyExists';
-import { FriendRequestNotFoundException } from './exceptions/FriendRequestNotFound';
-import { FriendRequestAcceptedException } from './exceptions/FriendRequestAccepted';
 import { FriendRequestException } from './exceptions/FriendRequest';
+import { FriendRequestAcceptedException } from './exceptions/FriendRequestAccepted';
+import { FriendRequestNotFoundException } from './exceptions/FriendRequestNotFound';
 import { FriendRequestPending } from './exceptions/FriendRequestPending';
-import { FriendNotFoundException } from 'src/friends/exceptions/FriendNotFound';
+import { IFriendRequestServices } from './friend-requests';
 
 @Injectable()
 export class FriendRequestServices implements IFriendRequestServices {
@@ -72,7 +73,7 @@ export class FriendRequestServices implements IFriendRequestServices {
 
   async accept(
     params: FriendRequestParams,
-  ): Promise<{ friend: Friend; friendRequest: FriendRequest }> {
+  ): Promise<FriendRequestAcceptPayload> {
     const { userId, id } = params;
 
     const friendRequest = await this.findById(id);
@@ -116,13 +117,13 @@ export class FriendRequestServices implements IFriendRequestServices {
     return this.friendRequestRepository.save(friendRequest);
   }
 
-  async cancel({
-    id,
-    userId,
-  }: CancelFriendRequestParams): Promise<FriendRequest> {
+  async cancel(params: CancelFriendRequestParams): Promise<FriendRequest> {
+    const { id, userId } = params;
     const friendRequest = await this.findById(id);
     if (!friendRequest) throw new FriendRequestNotFoundException();
-    if (friendRequest.sender.id === userId) throw new FriendRequestException();
+
+    if (friendRequest.sender.id !== userId) throw new FriendRequestException();
+
     await this.friendRequestRepository.delete({ id });
     return friendRequest;
   }

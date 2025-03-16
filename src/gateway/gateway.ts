@@ -39,7 +39,7 @@ export class MessagingGateway
   constructor() {}
 
   @Inject(Services.GATEWAY_SESSION_MANAGER)
-  private readonly sessions: IGatewaySessionManager;
+  public readonly sessions: IGatewaySessionManager;
 
   @Inject(Services.CONVERSATIONS)
   private readonly conversationServices: IConversationsServices;
@@ -303,13 +303,7 @@ export class MessagingGateway
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    console.log('onGroupLeave start');
-    console.log(client.rooms);
-    console.log('onGroupLeave end');
-
     client.leave(`group-${data.groupId}`);
-    console.log(client.rooms);
-
     client.to(`group-${data.groupId}`).emit('userLeave');
   }
 
@@ -318,13 +312,6 @@ export class MessagingGateway
   async handleGroupCreateEvent(payload: Group) {
     console.log('group.create event');
     const ownerId = payload.owner.id;
-
-    // payload.users.forEach((user) => {
-    //   if (user.id !== ownerId) {
-    //     const socket = this.sessions.getUserSocket(user.id);
-    //     socket && socket.emit(`onGroupCreate`, payload);
-    //   }
-    // });
 
     const socketIds: string[] = [];
     payload.users.forEach((user) => {

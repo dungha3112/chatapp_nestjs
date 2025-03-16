@@ -6,15 +6,18 @@ import {
   Param,
   ParseIntPipe,
 } from '@nestjs/common';
-import { Routes, Services } from 'src/utils/constants';
+import { Routes, ServerEvents, Services } from 'src/utils/constants';
 import { IFriendsServices } from './friends';
 import { AuthUser } from 'src/utils/decorators';
-import { User } from 'src/utils/typeorm';
+import { Friend, User } from 'src/utils/typeorm';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 
 @Controller(Routes.FRIENDS)
 export class FriendsController {
   constructor(
     @Inject(Services.FRIENDS) private readonly friendServices: IFriendsServices,
+
+    private readonly eventEmitter: EventEmitter2,
   ) {}
 
   @Get()
@@ -26,10 +29,10 @@ export class FriendsController {
   async deleteFriend(
     @AuthUser() { id: userId }: User,
     @Param('id', ParseIntPipe) id: number,
-  ) {
+  ): Promise<Friend> {
     const params = { userId, id };
     const res = await this.friendServices.deleteFriend(params);
-
+    this.eventEmitter.emit(ServerEvents.FRIEND_DELETE, res);
     return res;
   }
 }

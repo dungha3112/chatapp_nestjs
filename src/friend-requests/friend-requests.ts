@@ -1,17 +1,16 @@
-import { Friend, FriendRequest } from 'src/utils/typeorm';
+import { FriendRequest } from 'src/utils/typeorm';
 import {
   CancelFriendRequestParams,
   CreateFriendParams,
   DeleteFriendRequestParams,
+  FriendRequestAcceptPayload,
   FriendRequestParams,
   RejectFriendRequestParams,
 } from 'src/utils/types';
 
 export interface IFriendRequestServices {
   create(params: CreateFriendParams): Promise<FriendRequest>;
-  accept(
-    params: FriendRequestParams,
-  ): Promise<{ friend: Friend; friendRequest: FriendRequest }>;
+  accept(params: FriendRequestParams): Promise<FriendRequestAcceptPayload>;
   findById(id: number): Promise<FriendRequest>;
 
   isFending(

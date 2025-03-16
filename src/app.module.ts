@@ -12,6 +12,7 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
 import { GroupModule } from './group/group.module';
 import { FriendsModule } from './friends/friends.module';
 import { FriendRequestsModule } from './friend-requests/friend-requests.module';
+import { EventModule } from './events/events.module';
 
 @Module({
   imports: [
@@ -37,6 +38,8 @@ import { FriendRequestsModule } from './friend-requests/friend-requests.module';
     GroupModule,
     FriendsModule,
     FriendRequestsModule,
+
+    EventModule,
   ],
   controllers: [],
   providers: [],
