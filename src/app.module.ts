@@ -1,18 +1,21 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
-import { AuthModule } from './auth/auth.module';
-import { UsersModule } from './users/users.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { entities } from './utils/typeorm';
-import { PassportModule } from '@nestjs/passport';
-import { ConversationsModule } from './conversations/conversations.module';
-import { MessagesModule } from './messages/messages.module';
-import { GatewayModule } from './gateway/gateway.module';
+import { APP_GUARD } from '@nestjs/core';
 import { EventEmitterModule } from '@nestjs/event-emitter';
-import { GroupModule } from './group/group.module';
-import { FriendsModule } from './friends/friends.module';
-import { FriendRequestsModule } from './friend-requests/friend-requests.module';
+import { PassportModule } from '@nestjs/passport';
+import { ThrottlerModule } from '@nestjs/throttler';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { AuthModule } from './auth/auth.module';
+import { ConversationsModule } from './conversations/conversations.module';
 import { EventModule } from './events/events.module';
+import { FriendRequestsModule } from './friend-requests/friend-requests.module';
+import { FriendsModule } from './friends/friends.module';
+import { GatewayModule } from './gateway/gateway.module';
+import { GroupModule } from './group/group.module';
+import { MessagesModule } from './messages/messages.module';
+import { UsersModule } from './users/users.module';
+import { ThrottlerBehindProxyGuard } from './utils/throttler';
+import { entities } from './utils/typeorm';
 
 @Module({
   imports: [
@@ -39,9 +42,27 @@ import { EventModule } from './events/events.module';
     FriendsModule,
     FriendRequestsModule,
 
+    ThrottlerModule.forRoot({
+      throttlers: [{ ttl: 10, limit: 10, blockDuration: 10 }],
+      errorMessage: 'Too many requests, slow down!',
+    }),
+
+    // ThrottlerModule.forRoot(
+    //   [
+    //   {
+    //     ttl: 10,
+    //     limit: 10,
+    //   },
+    // ]),
+
     EventModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerBehindProxyGuard,
+    },
+  ],
 })
 export class AppModule {}

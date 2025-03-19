@@ -13,8 +13,9 @@ import { AuthUser } from 'src/utils/decorators';
 import { Conversation, User } from 'src/utils/typeorm';
 import { IConversationsServices } from './conversations';
 import { CreateConversationDto } from './dtos/CreateConversation.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
-// @UseGuards(AuthenticatedGuard)
+@SkipThrottle()
 @Controller(Routes.CONVERSATIONS)
 export class ConversationsController {
   constructor(

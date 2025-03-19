@@ -9,10 +9,13 @@ export class FriendEvents {
   constructor(private readonly gatway: MessagingGateway) {}
 
   @OnEvent(ServerEvents.FRIEND_DELETE)
-  async handleDeleteFriend(payload: Friend) {
-    const receiverSocket = this.gatway.sessions.getUserSocket(
-      payload.receiver.id,
-    );
-    receiverSocket && receiverSocket.emit('onFriendDelete', payload);
+  async handleDeleteFriend(payload) {
+    const { userId, friend }: { userId: number; friend: Friend } = payload;
+
+    const receiverId =
+      userId === friend.receiver.id ? friend.sender.id : friend.receiver.id;
+
+    const receiverSocket = this.gatway.sessions.getUserSocket(receiverId);
+    receiverSocket && receiverSocket.emit('onFriendDelete', friend);
   }
 }

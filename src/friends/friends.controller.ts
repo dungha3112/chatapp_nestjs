@@ -11,7 +11,9 @@ import { IFriendsServices } from './friends';
 import { AuthUser } from 'src/utils/decorators';
 import { Friend, User } from 'src/utils/typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller(Routes.FRIENDS)
 export class FriendsController {
   constructor(
@@ -31,8 +33,10 @@ export class FriendsController {
     @Param('id', ParseIntPipe) id: number,
   ): Promise<Friend> {
     const params = { userId, id };
-    const res = await this.friendServices.deleteFriend(params);
-    this.eventEmitter.emit(ServerEvents.FRIEND_DELETE, res);
-    return res;
+    const friend = await this.friendServices.deleteFriend(params);
+    this.eventEmitter.emit(ServerEvents.FRIEND_DELETE, { userId, friend });
+    console.log({ userId, friend });
+
+    return friend;
   }
 }

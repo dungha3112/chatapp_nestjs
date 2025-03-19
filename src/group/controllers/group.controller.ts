@@ -16,7 +16,9 @@ import { Group, User } from 'src/utils/typeorm';
 import { CreateGroupDto } from '../dtos/CreateGroup.dto';
 import { IGroupServices } from '../interfaces/group';
 import { TranferOwnerDto } from '../dtos/TranferOwner.dto';
+import { SkipThrottle } from '@nestjs/throttler';
 
+@SkipThrottle()
 @Controller(Routes.GROUPS)
 export class GroupController {
   constructor(

@@ -15,12 +15,13 @@ import {
   FriendRequestParams,
   RejectFriendRequestParams,
 } from 'src/utils/types';
-import { Repository } from 'typeorm';
+import { Not, Repository } from 'typeorm';
 import { FriendRequestException } from './exceptions/FriendRequest';
 import { FriendRequestAcceptedException } from './exceptions/FriendRequestAccepted';
 import { FriendRequestNotFoundException } from './exceptions/FriendRequestNotFound';
-import { FriendRequestPending } from './exceptions/FriendRequestPending';
+import { FriendRequestPendingException } from './exceptions/FriendRequestPending';
 import { IFriendRequestServices } from './friend-requests';
+import { FriendRequestRejectedException } from './exceptions/FriendRequestRejected';
 
 @Injectable()
 export class FriendRequestServices implements IFriendRequestServices {
@@ -45,6 +46,18 @@ export class FriendRequestServices implements IFriendRequestServices {
         { sender: { id }, status },
         { receiver: { id }, status },
       ],
+
+      relations: ['receiver', 'sender'],
+    });
+  }
+
+  async getFriendRejectedRequests(id: number): Promise<FriendRequest[]> {
+    const status = 'rejected';
+    return await this.friendRequestRepository.find({
+      where: [
+        { sender: { id }, status },
+        { receiver: { id }, status },
+      ],
       relations: ['receiver', 'sender'],
     });
   }
@@ -55,10 +68,16 @@ export class FriendRequestServices implements IFriendRequestServices {
     const receiver = await this.userService.findUser({ email });
     if (!receiver) throw new UserNotFoundException();
 
-    if (sender.id === receiver.id) throw new FriendRequestException();
+    const isFriendRequest = await this.isFriendRequest(sender.id, receiver.id);
 
-    const exists = await this.isFending(sender.id, receiver.id);
-    if (exists) throw new FriendRequestPending();
+    if (isFriendRequest) {
+      if (isFriendRequest.status === 'pending')
+        throw new FriendRequestPendingException();
+      if (isFriendRequest.status === 'rejected')
+        throw new FriendRequestRejectedException();
+    }
+
+    if (sender.id === receiver.id) throw new FriendRequestException();
 
     const isFriend = await this.friendsService.isFriend(sender.id, receiver.id);
     if (isFriend) throw new FriendAlreadyExists();
@@ -124,6 +143,9 @@ export class FriendRequestServices implements IFriendRequestServices {
 
     if (friendRequest.sender.id !== userId) throw new FriendRequestException();
 
+    if (friendRequest.status === 'pending')
+      throw new FriendRequestAcceptedException();
+
     await this.friendRequestRepository.delete({ id });
     return friendRequest;
   }
@@ -135,25 +157,22 @@ export class FriendRequestServices implements IFriendRequestServices {
     });
   }
 
-  async isFending(
+  async isFriendRequest(
     senderId: number,
     receiverId: any,
   ): Promise<FriendRequest | undefined> {
-    const status = 'pending';
-
     return await this.friendRequestRepository.findOne({
       where: [
         {
           sender: { id: senderId },
           receiver: { id: receiverId },
-          status,
         },
         {
           receiver: { id: senderId },
           sender: { id: receiverId },
-          status,
         },
       ],
+      relations: ['receiver', 'sender'],
     });
   }
 

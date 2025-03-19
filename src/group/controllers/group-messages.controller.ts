@@ -19,6 +19,7 @@ import { User } from 'src/utils/typeorm';
 import { CreateGroupMessageResponse } from 'src/utils/types';
 import { IGroupMessageServices } from '../interfaces/group-messages';
 import { EditGroupMessageDto } from '../dtos/EditGroupMessage.dto';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 
 @Controller(Routes.GROUPS_MESSAGES)
 export class GroupMessageController {
@@ -30,6 +31,7 @@ export class GroupMessageController {
   ) {}
 
   @Post()
+  @Throttle({ default: { limit: 5, ttl: 10 } })
   async createGroupMessage(
     @AuthUser() user: User,
     @Param('groupId', ParseIntPipe) groupId: number,
@@ -45,6 +47,7 @@ export class GroupMessageController {
   }
 
   @Get()
+  @SkipThrottle()
   async getGroupMessagesById(
     @Param('groupId', ParseIntPipe) groupId: number,
     @Query('skip', new DefaultValuePipe(1), ParseIntPipe) skip: number,
@@ -59,6 +62,7 @@ export class GroupMessageController {
 
   // api/groups/:groupId/messages/:messageId
   @Delete(':messageId')
+  @SkipThrottle()
   async deleteGroupMessageByMessageId(
     @AuthUser() { id: userId }: User,
     @Param('groupId', ParseIntPipe) groupId: number,
@@ -74,6 +78,7 @@ export class GroupMessageController {
 
   // api/groups/:groupId/messages/:messageId
   @Patch('/:messageId')
+  @SkipThrottle()
   async editGroupMessageByMessageId(
     @AuthUser() { id: userId }: User,
     @Param('groupId', ParseIntPipe) groupId: number,

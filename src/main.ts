@@ -1,6 +1,8 @@
 import { ValidationPipe } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import { TypeormStore } from 'connect-typeorm';
+import * as cookieParser from 'cookie-parser';
 import * as session from 'express-session';
 import * as morgan from 'morgan';
 import * as passport from 'passport';
@@ -8,8 +10,6 @@ import 'reflect-metadata';
 import { AppModule } from './app.module';
 import { WebsocketAdapter } from './gateway/gateway.adapter';
 import { AppDataSource, Session } from './utils/typeorm';
-import { NestExpressApplication } from '@nestjs/platform-express';
-import * as cookieParser from 'cookie-parser';
 
 async function bootstrap() {
   const { PORT, COOKIE_SECRET } = process.env;
@@ -24,6 +24,9 @@ async function bootstrap() {
   app.use(cookieParser());
   app.enableCors({ origin: ['http://localhost:5173'], credentials: true });
   app.useGlobalPipes(new ValidationPipe());
+
+  app.set('trust proxy', 'loopback');
+
   app.use(
     session({
       secret: COOKIE_SECRET,

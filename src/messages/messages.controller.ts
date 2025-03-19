@@ -15,14 +15,15 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { SkipThrottle, Throttle } from '@nestjs/throttler';
 import { Response } from 'express';
 import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 import { Routes, Services } from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
 import { Message, User } from 'src/utils/typeorm';
 import { CreateMessageDto } from './dtos/CreateMessageDto';
-import { IMessageServices } from './messages';
 import { EditMessageDto } from './dtos/EditMessageDto';
+import { IMessageServices } from './messages';
 
 @UseGuards(AuthenticatedGuard)
 @Controller(Routes.MESSAGES)
@@ -34,6 +35,7 @@ export class MessagesController {
   ) {}
 
   @Post()
+  @Throttle({ default: { limit: 5, ttl: 10 } })
   async createMessage(
     @Res() res: Response,
     @Param('conversationId', ParseIntPipe) conversationId: number,
@@ -48,6 +50,7 @@ export class MessagesController {
   }
 
   @Get()
+  @SkipThrottle()
   async getMessagesByConversationId(
     @Param('conversationId', ParseIntPipe) conversationId: number,
     @Query('skip', new DefaultValuePipe(1), ParseIntPipe) skip: number,
@@ -56,8 +59,7 @@ export class MessagesController {
       conversationId,
       skip,
     );
-    return { id: conversationId, messages: res[0], count: res[1] };
-    // return { id: conversationId, messages: res };
+    return { id: conversationId, messages: res };
   }
 
   // api/conversations/:conversationId/messages/:messageId

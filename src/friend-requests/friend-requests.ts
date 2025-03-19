@@ -13,7 +13,7 @@ export interface IFriendRequestServices {
   accept(params: FriendRequestParams): Promise<FriendRequestAcceptPayload>;
   findById(id: number): Promise<FriendRequest>;
 
-  isFending(
+  isFriendRequest(
     senderId: number,
     receiverId: number,
   ): Promise<FriendRequest | undefined>;
@@ -23,6 +23,7 @@ export interface IFriendRequestServices {
   reject(params: RejectFriendRequestParams): Promise<FriendRequest>;
 
   getFriendRequests(userId: number): Promise<FriendRequest[]>;
+  getFriendRejectedRequests(userId: number): Promise<FriendRequest[]>;
 
   delete(params: DeleteFriendRequestParams): Promise<FriendRequest>;
 }

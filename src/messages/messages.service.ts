@@ -75,7 +75,7 @@ export class MessagesService implements IMessageServices {
   async getMessageByConversationId(
     id: number,
     skip: number,
-  ): Promise<[Message[], number]> {
+  ): Promise<Message[]> {
     const conversation = await this.conversationsServices.findById(id);
     if (!conversation) throw new ConversationNotFoundException();
 
@@ -87,7 +87,7 @@ export class MessagesService implements IMessageServices {
     const currentTake = Math.min(skip, maxTake);
     const maxSkip = (currentTake - 1) * take;
 
-    const messages = await this.messageRepository.findAndCount({
+    const messages = await this.messageRepository.find({
       where: { conversation: { id: id } },
       relations: ['author'],
       order: { createdAt: 'DESC' },
