@@ -34,7 +34,7 @@ export class FriendsController {
   ): Promise<Friend> {
     const params = { userId, id };
     const friend = await this.friendServices.deleteFriend(params);
-    this.eventEmitter.emit(ServerEvents.FRIEND_DELETE, { userId, friend });
+    this.eventEmitter.emit(ServerEvents.FRIEND_REMOVED, { userId, friend });
     console.log({ userId, friend });
 
     return friend;

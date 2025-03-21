@@ -24,6 +24,7 @@ import {
 } from 'src/utils/types';
 import { IGatewaySessionManager } from './gateway.session';
 import { IGroupServices } from 'src/group/interfaces/group';
+import { IFriendsServices } from 'src/friends/friends';
 
 @WebSocketGateway({
   cors: {
@@ -46,6 +47,9 @@ export class MessagingGateway
 
   @Inject(Services.GROUPS)
   private readonly groupServices: IGroupServices;
+
+  @Inject(Services.FRIENDS)
+  private readonly friendsService: IFriendsServices;
 
   // server: Server from package, to emit to client side
   @WebSocketServer()
@@ -434,5 +438,27 @@ export class MessagingGateway
     }
 
     await this.handleGetOnlineGroupUsers({ groupId: group.id }, leftUserSocket);
+  }
+
+  // get from client
+  @SubscribeMessage('getOnlineFriends')
+  async handleFriendListRetrieve(
+    @MessageBody() data: any,
+    @ConnectedSocket() socket: AuthenticatedSocket,
+  ) {
+    const { user } = socket;
+
+    if (user) {
+      const friends = await this.friendsService.getFriends(user.id);
+
+      const onlineFriends = friends.filter((friend) =>
+        this.sessions.getUserSocket(
+          user.id === friend.receiver.id
+            ? friend.sender.id
+            : friend.receiver.id,
+        ),
+      );
+      socket.emit('getOnlineFriends', onlineFriends);
+    }
   }
 }

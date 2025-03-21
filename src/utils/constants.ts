@@ -29,5 +29,5 @@ export enum ServerEvents {
   FRIEND_REQUEST_CANCEL = 'friend.request.cancel',
   FRIEND_REQUEST_REJECT = 'friend.request.reject',
 
-  FRIEND_DELETE = 'friend.delete',
+  FRIEND_REMOVED = 'friend.removed',
 }

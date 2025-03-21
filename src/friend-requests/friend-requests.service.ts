@@ -143,7 +143,7 @@ export class FriendRequestServices implements IFriendRequestServices {
 
     if (friendRequest.sender.id !== userId) throw new FriendRequestException();
 
-    if (friendRequest.status === 'pending')
+    if (friendRequest.status === 'accepted')
       throw new FriendRequestAcceptedException();
 
     await this.friendRequestRepository.delete({ id });

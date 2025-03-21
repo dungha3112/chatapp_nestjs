@@ -4,9 +4,10 @@ import { MessagingGateway } from './gateway';
 import { GatewaySessionManager } from './gateway.session';
 import { ConversationsModule } from 'src/conversations/conversations.module';
 import { GroupModule } from 'src/group/group.module';
+import { FriendsModule } from 'src/friends/friends.module';
 
 @Module({
-  imports: [ConversationsModule, GroupModule],
+  imports: [ConversationsModule, GroupModule, FriendsModule],
   providers: [
     MessagingGateway,
     {
