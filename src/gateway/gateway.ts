@@ -56,14 +56,14 @@ export class MessagingGateway
   server: Server;
 
   handleConnection(socket: AuthenticatedSocket, ...args: any[]) {
-    console.log(`Incoming Connection: ${socket.user.email}`);
+    console.log(`Incoming Connection: ${socket.user.username}`);
     this.sessions.setUserSocket(socket.user.id, socket);
     socket.emit('connected', {});
   }
 
   handleDisconnect(socket: AuthenticatedSocket) {
     console.log('disconnected ...');
-    console.log(`${socket.user.email} disconnected.`);
+    console.log(`${socket.user.username} disconnected.`);
     socket.rooms.forEach((room) => {
       if (room !== socket.id) {
         socket.leave(room);
@@ -121,10 +121,11 @@ export class MessagingGateway
   ) {
     const { conversationId } = data;
 
-    console.log(`conversation join`, { data });
+    console.log('client.rooms join', client.rooms, 'conversation join', {
+      data,
+    });
 
     client.join(`conversation-${conversationId}`);
-    console.log(client.rooms);
 
     client.to(`conversation-${conversationId}`).emit('userConversationJoin');
   }
@@ -136,12 +137,9 @@ export class MessagingGateway
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    console.log('onConversationLeave start');
-    console.log(client.rooms);
-    console.log('onConversationLeave end');
+    console.log('client.rooms leave', client.rooms);
 
     client.leave(`conversation-${data.conversationId}`);
-    console.log(client.rooms);
 
     client.to(`conversation-${data.conversationId}`).emit('userLeave');
   }
@@ -295,7 +293,7 @@ export class MessagingGateway
     console.log(`onGroupJoin join`, { data });
 
     client.join(`group-${data.groupId}`);
-    console.log(client.rooms);
+    console.log('group join', client.rooms);
 
     client.to(`group-${data.groupId}`).emit('userGroupJoin');
   }
@@ -314,7 +312,6 @@ export class MessagingGateway
   // get socket emit group.create from group.controoler
   @OnEvent('group.create')
   async handleGroupCreateEvent(payload: Group) {
-    console.log('group.create event');
     const ownerId = payload.owner.id;
 
     const socketIds: string[] = [];
@@ -335,7 +332,6 @@ export class MessagingGateway
   @OnEvent('group.message.create')
   async handleGroupMessageCreateEvent(payload: CreateGroupMessageResponse) {
     const { id } = payload.group;
-    console.log('Inside group.message.create');
 
     const group = await this.groupServices.findGroupById(id);
     if (!group) return;

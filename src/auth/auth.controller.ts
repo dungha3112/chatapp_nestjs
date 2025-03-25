@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Get,
+  HttpStatus,
   Inject,
   Post,
   Req,
@@ -10,7 +11,7 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { Routes, Services } from 'src/utils/constants';
-import { IuserServices } from 'src/users/user';
+import { IuserServices } from 'src/users/interfaces/user';
 import { instanceToPlain } from 'class-transformer';
 import { AuthenticatedGuard, LocalAuthGuard } from './utils/Guards';
 import { Request, Response } from 'express';
@@ -30,13 +31,14 @@ export class AuthController {
   @UseGuards(LocalAuthGuard)
   @Post('login')
   async login(@Res() res: Response, @Req() req: Request) {
-    return res.send(instanceToPlain(req.user));
+    return res.sendStatus(HttpStatus.OK);
   }
 
   @UseGuards(AuthenticatedGuard)
   @Get('status')
   async status(@Res() res: Response, @Req() req: AuthenticatedRequest) {
-    // delete (req.user as User).password;
+
+
     return res.send(instanceToPlain(req.user));
   }
 

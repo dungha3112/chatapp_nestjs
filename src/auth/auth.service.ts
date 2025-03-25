@@ -1,6 +1,6 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { IAuthServices } from './auth';
-import { IuserServices } from 'src/users/user';
+import { IuserServices } from 'src/users/interfaces/user';
 import { Services } from 'src/utils/constants';
 import { User } from 'src/utils/typeorm';
 import { ValidateUserDetails } from 'src/utils/types';
@@ -15,7 +15,7 @@ export class AuthService implements IAuthServices {
   async validateUser(userDetails: ValidateUserDetails): Promise<User | null> {
     const user = await this.userServices.findUser(
       {
-        email: userDetails.email,
+        username: userDetails.username,
       },
       { selectAll: true },
     );

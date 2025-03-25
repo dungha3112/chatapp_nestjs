@@ -8,6 +8,7 @@ import { Session } from './entities/Session';
 import { User } from './entities/User';
 import { Friend } from './entities/Friend';
 import { FriendRequest } from './entities/FriendRequest';
+import { Profile } from './entities/Profile';
 dotenv.config();
 
 export const entities = [
@@ -19,6 +20,7 @@ export const entities = [
   GroupMessage,
   FriendRequest,
   Friend,
+  Profile,
 ];
 
 export const AppDataSource = new DataSource({
@@ -41,4 +43,5 @@ export {
   GroupMessage,
   Friend,
   FriendRequest,
+  Profile,
 };

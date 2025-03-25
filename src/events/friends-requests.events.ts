@@ -22,8 +22,6 @@ export class FriendRequestsEvents {
   @OnEvent(ServerEvents.FRIEND_REQUEST_ACCEPT)
   async handleAcceptFriendRequest(payload: FriendRequestAcceptPayload) {
     const { friend, friendRequest } = payload;
-    console.log(`request accept ...`, friendRequest.sender.email);
-    console.log(`request accept ...`, friend.sender.email);
 
     const senderRequestSocket = this.gatway.sessions.getUserSocket(
       friendRequest.sender.id,
@@ -45,8 +43,6 @@ export class FriendRequestsEvents {
 
   @OnEvent(ServerEvents.FRIEND_REQUEST_REJECT)
   async handleRejectFriendRequest(payload: FriendRequest) {
-    console.log(`rejected ...`, payload.sender.email);
-
     const senderRequestSocket = this.gatway.sessions.getUserSocket(
       payload.sender.id,
     );

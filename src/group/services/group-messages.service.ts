@@ -62,18 +62,16 @@ export class GroupMessageServices implements IGroupMessageServices {
   async getGroupMessagesById(
     groupId: number,
     skip: number,
-  ): Promise<[GroupMessage[], number]> {
+  ): Promise<GroupMessage[]> {
     const group = await this.groupServices.findGroupById(groupId);
     if (!group) throw new GroupNotFoundException();
 
     if (!skip) return;
 
-    const messages = await this.groupMessageRepository.findAndCount({
+    const messages = await this.groupMessageRepository.find({
       where: { group: { id: groupId } },
-      relations: ['author'],
+      relations: ['author', 'author.profile'],
       order: { createdAt: 'DESC' },
-      // take: 10,
-      // skip: skip,
     });
 
     return messages;

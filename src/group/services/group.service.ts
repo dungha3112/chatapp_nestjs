@@ -13,7 +13,7 @@ import {
 import { Repository } from 'typeorm';
 import { IGroupServices } from '../interfaces/group';
 import { Services } from 'src/utils/constants';
-import { IuserServices } from 'src/users/user';
+import { IuserServices } from 'src/users/interfaces/user';
 import { GroupNotFoundException } from '../exceptions/GroupNotFound';
 import { GroupOwnerTransferException } from '../exceptions/GroupOwnerTransfer';
 import { GroupParticipantNotFoundException } from '../exceptions/GroupParticipantNotFound';
@@ -38,7 +38,7 @@ export class GroupService implements IGroupServices {
   async createGroup(params: CreateGroupParams): Promise<Group> {
     const { owner, title, users, message } = params;
     const userPromise = users.map(
-      async (email) => await this.userServices.findUser({ email }),
+      async (username) => await this.userServices.findUser({ username }),
     );
 
     const usersDb = await Promise.all(userPromise);
@@ -73,8 +73,10 @@ export class GroupService implements IGroupServices {
       .createQueryBuilder('group')
       .leftJoinAndSelect('group.users', 'user')
       .where('user.id IN (:users)', { users: [userId] })
-      .leftJoinAndSelect('group.owner', 'owner')
       .leftJoinAndSelect('group.users', 'users')
+      .leftJoinAndSelect('users.profile', 'usersProfile')
+
+      .leftJoinAndSelect('group.owner', 'owner')
       .leftJoinAndSelect('group.lastMessageSent', 'lastMessageSent')
       .leftJoinAndSelect('lastMessageSent.author', 'author')
       .orderBy('lastMessageSent.createdAt', 'DESC')
@@ -175,12 +177,10 @@ export class GroupService implements IGroupServices {
     const { userId, groupId } = params;
 
     const group = await this.findGroupById(groupId);
-    console.log({ group });
 
     if (!group) throw new GroupNotFoundException();
 
     const user = group.users.find((u) => u.id === userId);
-    console.log({ user });
 
     if (!user) throw new GroupParticipantNotFoundException();
 

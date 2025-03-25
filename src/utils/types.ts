@@ -13,20 +13,19 @@ import {
 export type CreateUserDetails = {
   firstName: string;
   lastName: string;
-  email: string;
+  username: string;
   password: string;
 };
 
 //ValidateUserDetails
 export type ValidateUserDetails = {
-  email: string;
+  username: string;
   password: string;
 };
 
 //FindUserParams
 export type FindUserParams = Partial<{
   id: number;
-  email: string;
   username: string;
 }>;
 
@@ -38,7 +37,7 @@ export type FindUserOptions = Partial<{
 // Conversation
 //CreateConversationsParams
 export type CreateConversationsParams = {
-  email: string;
+  username: string;
   message: string;
 };
 
@@ -171,7 +170,7 @@ export type EditGroupMessageParams = {
 export type AddGroupRecipientParams = {
   ownerId: number;
   groupId: number;
-  email: string;
+  username: string;
 };
 
 // AddGroupUserResponse
@@ -218,7 +217,7 @@ export type CheckUserInGroupParams = {
  */
 export type CreateFriendParams = {
   sender: User;
-  email: string;
+  username: string;
 };
 
 export type DeleteFriendRequestParams = {
@@ -251,4 +250,23 @@ export type RejectFriendRequestParams = {
 export type FriendRequestAcceptPayload = {
   friend: Friend;
   friendRequest: FriendRequest;
+};
+
+//UpdateUserProfileParams
+export type UpdateUserProfileParams = Partial<{
+  about: string;
+  banner: Express.Multer.File;
+  avatar: Express.Multer.File;
+}>;
+
+//\\ UploadImageParams
+
+export type UserProfileFiles = Partial<{
+  banner: Express.Multer.File[];
+  avatar: Express.Multer.File[];
+}>;
+
+export type UploadImageResponse = {
+  secure_url: string;
+  public_id: string;
 };

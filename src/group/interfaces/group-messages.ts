@@ -11,10 +11,7 @@ export interface IGroupMessageServices {
     params: CreateGroupMessageParams,
   ): Promise<CreateGroupMessageResponse>;
 
-  getGroupMessagesById(
-    groupId: number,
-    skip: number,
-  ): Promise<[GroupMessage[], number]>;
+  getGroupMessagesById(groupId: number, skip: number): Promise<GroupMessage[]>;
 
   deleteGroupMessage(params: DeleteGroupMessageParams);
 

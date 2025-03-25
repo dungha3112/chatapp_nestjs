@@ -4,7 +4,7 @@ import { FriendAlreadyExists } from 'src/friends/exceptions/FriendAlreadyExists'
 import { FriendNotFoundException } from 'src/friends/exceptions/FriendNotFound';
 import { IFriendsServices } from 'src/friends/friends';
 import { UserNotFoundException } from 'src/users/exceptions/UserNotFound';
-import { IuserServices } from 'src/users/user';
+import { IuserServices } from 'src/users/interfaces/user';
 import { Services } from 'src/utils/constants';
 import { Friend, FriendRequest } from 'src/utils/typeorm';
 import {
@@ -47,7 +47,7 @@ export class FriendRequestServices implements IFriendRequestServices {
         { receiver: { id }, status },
       ],
 
-      relations: ['receiver', 'sender'],
+      relations: ['receiver', 'sender', 'receiver.profile', 'sender.profile'],
     });
   }
 
@@ -63,9 +63,9 @@ export class FriendRequestServices implements IFriendRequestServices {
   }
 
   async create(params: CreateFriendParams): Promise<FriendRequest> {
-    const { sender, email } = params;
+    const { sender, username } = params;
 
-    const receiver = await this.userService.findUser({ email });
+    const receiver = await this.userService.findUser({ username });
     if (!receiver) throw new UserNotFoundException();
 
     const isFriendRequest = await this.isFriendRequest(sender.id, receiver.id);

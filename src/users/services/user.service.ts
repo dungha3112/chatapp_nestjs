@@ -1,5 +1,4 @@
 import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
-import { IuserServices } from './user';
 import {
   CreateUserDetails,
   FindUserOptions,
@@ -9,9 +8,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { User } from 'src/utils/typeorm';
 import { Repository } from 'typeorm';
 import { hashPassword } from 'src/utils/helpers';
+import { IuserServices } from '../interfaces/user';
 
 @Injectable()
-export class UsersService implements IuserServices {
+export class UserServices implements IuserServices {
   constructor(
     @InjectRepository(User) private readonly userRepository: Repository<User>,
   ) {}
@@ -23,11 +23,11 @@ export class UsersService implements IuserServices {
    */
   async createUser(userDetails: CreateUserDetails): Promise<User> {
     const userExist = await this.userRepository.findOne({
-      where: { email: userDetails.email },
+      where: { username: userDetails.username },
     });
     if (userExist)
       throw new HttpException(
-        'User already exists with the email',
+        'User already exists with the username',
         HttpStatus.CONFLICT,
       );
 
@@ -47,7 +47,12 @@ export class UsersService implements IuserServices {
     findUserParams: FindUserParams,
     options?: FindUserOptions,
   ): Promise<User> {
-    const selections: (keyof User)[] = ['email', 'lastName', 'firstName', 'id'];
+    const selections: (keyof User)[] = [
+      'username',
+      'lastName',
+      'firstName',
+      'id',
+    ];
 
     const selectionsWithPassword: (keyof User)[] = [...selections, 'password'];
 
@@ -65,13 +70,19 @@ export class UsersService implements IuserServices {
    */
   async searchUsers(query: string): Promise<User[]> {
     const statement =
-      '(user.firstName LIKE :query OR user.email LIKE :query OR user.lastName LIKE :query)';
+      '(user.firstName LIKE :query OR user.username LIKE :query OR user.lastName LIKE :query)';
 
     return this.userRepository
       .createQueryBuilder('user')
       .where(statement, { query: `%${query}%` })
       .limit(10)
-      .addSelect(['user.lastName', 'user.firstName', 'user.email', 'user.id'])
+      .addSelect([
+        'user.lastName',
+        'user.firstName',
+        'user.username',
+        'user.id',
+        'user.profile',
+      ])
       .getMany();
   }
 }

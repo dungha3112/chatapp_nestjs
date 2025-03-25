@@ -1,5 +1,5 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
-import { IuserServices } from 'src/users/user';
+import { IuserServices } from 'src/users/interfaces/user';
 import { Services } from 'src/utils/constants';
 import {
   AddGroupRecipientParams,
@@ -27,13 +27,13 @@ export class GroupRecipientsServices implements IGroupRecipientsServices {
   async addGroupRecipient(
     params: AddGroupRecipientParams,
   ): Promise<AddGroupUserResponse> {
-    const { email, ownerId, groupId } = params;
+    const { username, ownerId, groupId } = params;
     const group = await this.groupServices.findGroupById(groupId);
     if (!group) throw new GroupNotFoundException();
 
     if (group.owner.id !== ownerId) throw new NotGroupOwnerException();
 
-    const recipient = await this.userServices.findUser({ email: email });
+    const recipient = await this.userServices.findUser({ username: username });
     if (!recipient)
       throw new HttpException('User does not exists !', HttpStatus.BAD_REQUEST);
 

@@ -34,7 +34,7 @@ export class FriendsServices implements IFriendsServices {
   async getFriends(id: number): Promise<Friend[]> {
     return await this.friendRepository.find({
       where: [{ sender: { id } }, { receiver: { id } }],
-      relations: ['sender', 'receiver'],
+      relations: ['sender', 'receiver', 'receiver.profile', 'sender.profile'],
     });
   }
 
@@ -55,7 +55,6 @@ export class FriendsServices implements IFriendsServices {
     const receiverId = friend.receiver.id;
 
     if (senderId !== userId && receiverId !== userId) {
-      console.log(11111);
       throw new DeleteFriendException();
     }
     const friendRequest = await this.friendRequestRepository.findOne({

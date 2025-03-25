@@ -57,7 +57,7 @@ export class GroupMessageController {
       skip,
     );
 
-    return { id: groupId, messages: res[0], count: res[1] };
+    return { id: groupId, messages: res };
   }
 
   // api/groups/:groupId/messages/:messageId

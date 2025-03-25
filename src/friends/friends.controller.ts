@@ -35,7 +35,6 @@ export class FriendsController {
     const params = { userId, id };
     const friend = await this.friendServices.deleteFriend(params);
     this.eventEmitter.emit(ServerEvents.FRIEND_REMOVED, { userId, friend });
-    console.log({ userId, friend });
 
     return friend;
   }

@@ -5,7 +5,7 @@ import { instanceToPlain } from 'class-transformer';
 export const AuthUser = createParamDecorator(
   (data: unknown, ctx: ExecutionContext) => {
     const request = <AuthenticatedRequest>ctx.switchToHttp().getRequest();
-    delete request.user.password;
+    delete request?.user?.password;
     return instanceToPlain(request.user);
   },
 );

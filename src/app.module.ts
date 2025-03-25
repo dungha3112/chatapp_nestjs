@@ -16,6 +16,8 @@ import { MessagesModule } from './messages/messages.module';
 import { UsersModule } from './users/users.module';
 import { ThrottlerBehindProxyGuard } from './utils/throttler';
 import { entities } from './utils/typeorm';
+import { ExistsModule } from './exists/exists.module';
+import { ImageStorageModule } from './image-storage/image-storage.module';
 
 @Module({
   imports: [
@@ -47,15 +49,9 @@ import { entities } from './utils/typeorm';
       errorMessage: 'Too many requests, slow down!',
     }),
 
-    // ThrottlerModule.forRoot(
-    //   [
-    //   {
-    //     ttl: 10,
-    //     limit: 10,
-    //   },
-    // ]),
-
+    ExistsModule,
     EventModule,
+    ImageStorageModule,
   ],
   controllers: [],
   providers: [

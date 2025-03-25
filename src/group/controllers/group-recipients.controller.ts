@@ -33,9 +33,9 @@ export class GroupRecipientsController {
     @AuthUser() { id: ownerId }: User,
     @Param('groupId', ParseIntPipe) groupId: number,
 
-    @Body() { email }: AddGroupRecipientDto,
+    @Body() { username }: AddGroupRecipientDto,
   ): Promise<AddGroupUserResponse> {
-    const params = { ownerId, groupId, email };
+    const params = { ownerId, groupId, username };
 
     const res = await this.groupRecipientsServices.addGroupRecipient(params);
     this.eventEmitter.emit('group.user.add', res);

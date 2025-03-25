@@ -1,5 +1,7 @@
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { IuserServices } from 'src/users/interfaces/user';
+import { Services } from 'src/utils/constants';
 import { Conversation, Message, User } from 'src/utils/typeorm';
 import {
   AccessConversationParams,
@@ -9,8 +11,7 @@ import {
 } from 'src/utils/types';
 import { Repository } from 'typeorm';
 import { IConversationsServices } from './conversations';
-import { Services } from 'src/utils/constants';
-import { IuserServices } from 'src/users/user';
+import { ConversationAlreadlyExists } from './exceptions/ConversationAlreadyExists';
 import { ConversationNotFoundException } from './exceptions/ConversationNotFound';
 
 @Injectable()
@@ -36,6 +37,9 @@ export class ConversationsService implements IConversationsServices {
       .leftJoinAndSelect('conversation.lastMessageSent', 'lastMessageSent')
       .leftJoinAndSelect('conversation.creator', 'creator')
       .leftJoinAndSelect('conversation.recipient', 'recipient')
+      .leftJoinAndSelect('creator.profile', 'creatorProfile')
+      .leftJoinAndSelect('recipient.profile', 'recipientProfile')
+
       .leftJoinAndSelect('lastMessageSent.author', 'author')
       .where('creator.id = :id', { id })
       .orWhere('recipient.id = :id', { id })
@@ -55,8 +59,8 @@ export class ConversationsService implements IConversationsServices {
     creator: User,
     conversationsParams: CreateConversationsParams,
   ): Promise<Conversation> {
-    const { email, message: content } = conversationsParams;
-    const recipient = await this.userServices.findUser({ email: email });
+    const { username, message: content } = conversationsParams;
+    const recipient = await this.userServices.findUser({ username });
 
     if (!recipient) {
       throw new HttpException(
@@ -74,11 +78,7 @@ export class ConversationsService implements IConversationsServices {
 
     const existsConversation = await this.isCreated(creator.id, recipient.id);
 
-    if (existsConversation)
-      throw new HttpException(
-        'Conversation already exists',
-        HttpStatus.BAD_REQUEST,
-      );
+    if (existsConversation) throw new ConversationAlreadlyExists();
 
     const newConversation = this.conversationRepository.create({
       creator,
@@ -131,8 +131,8 @@ export class ConversationsService implements IConversationsServices {
         'recipient',
         'lastMessageSent',
         'lastMessageSent.author',
-        // 'messages',
-        // 'messages.author',
+        'creator.profile',
+        'recipient.profile',
       ],
     });
 

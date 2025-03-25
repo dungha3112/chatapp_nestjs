@@ -53,8 +53,6 @@ export class ConversationsController {
   async findById(
     @Param('conversationId', ParseIntPipe) conversationId: number,
   ) {
-    console.log(`get conversation by id ...`);
-
     return await this.conversationServices.findById(conversationId);
   }
 }

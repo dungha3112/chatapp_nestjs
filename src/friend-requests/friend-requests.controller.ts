@@ -41,9 +41,9 @@ export class FriendRequestController {
   @Throttle({ default: { limit: 5, ttl: 10 } })
   async createFriendRequest(
     @AuthUser() sender: User,
-    @Body() { email }: CreateFriendDto,
+    @Body() { username }: CreateFriendDto,
   ) {
-    const res = await this.friendRequestServices.create({ sender, email });
+    const res = await this.friendRequestServices.create({ sender, username });
     this.eventEmitter.emit(ServerEvents.FRIEND_REQUEST_CREATE, res);
     return res;
   }

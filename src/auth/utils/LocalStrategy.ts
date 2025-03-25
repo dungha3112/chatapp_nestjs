@@ -9,13 +9,13 @@ export class LocalStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(Services.AUTH) private readonly authServices: IAuthServices,
   ) {
-    super({ usernameField: 'email' });
+    super();
+    // super({ usernameField: 'username' });
   }
-  async validate(email: string, password: string) {
-    const result = await this.authServices.validateUser({ email, password });
-    console.log('-------validate ----');
-    console.log(result);
-    console.log('-------end ----');
+  async validate(username: string, password: string) {
+    const result = await this.authServices.validateUser({ username, password });
+    console.log('-------validate ----', result);
+ 
     return result;
   }
 }
