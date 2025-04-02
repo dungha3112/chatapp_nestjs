@@ -43,32 +43,30 @@ export class GroupController {
     return await this.groupServices.getGroups(user.id);
   }
 
-  @Get('/:groupId')
-  async getGroupById(
-    @Param('groupId', ParseIntPipe) groupId: number,
-  ): Promise<Group> {
-    return await this.groupServices.findGroupById(groupId);
+  @Get('/:id')
+  async getGroupById(@Param('id', ParseIntPipe) id: number): Promise<Group> {
+    return await this.groupServices.findGroupById(id);
   }
 
-  @Patch('/:groupId/owner')
+  @Patch('/:id/owner')
   async updateGroupOwner(
     @AuthUser() { id: userId }: User,
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() { newOwnerId }: TranferOwnerDto,
   ): Promise<Group> {
-    const params = { userId, groupId, newOwnerId };
+    const params = { userId, id, newOwnerId };
     const res = await this.groupServices.updateGroupOwner(params);
     this.eventEmitter.emit('group.owner.update', res);
     return res;
   }
 
-  // api/groups/:groupId/leave
-  @Delete('/:groupId/leave')
+  // api/groups/:id/leave
+  @Delete('/:id/leave')
   async userLeaveGroup(
     @AuthUser() { id: userId }: User,
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('id', ParseIntPipe) id: number,
   ): Promise<Group> {
-    const params = { userId, groupId };
+    const params = { userId, id };
 
     const res = await this.groupServices.userLeaveGroup(params);
     this.eventEmitter.emit('group.user.leave', { group: res, userId });

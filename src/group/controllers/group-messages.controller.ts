@@ -34,10 +34,10 @@ export class GroupMessageController {
   @Throttle({ default: { limit: 5, ttl: 10 } })
   async createGroupMessage(
     @AuthUser() user: User,
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Body() { content }: CreateMessageDto,
   ): Promise<CreateGroupMessageResponse> {
-    const params = { groupId, user, content };
+    const params = { id, user, content };
 
     //
     const response = await this.groupMessageServices.createGroupMessage(params);
@@ -49,43 +49,40 @@ export class GroupMessageController {
   @Get()
   @SkipThrottle()
   async getGroupMessagesById(
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Query('skip', new DefaultValuePipe(1), ParseIntPipe) skip: number,
   ) {
-    const res = await this.groupMessageServices.getGroupMessagesById(
-      groupId,
-      skip,
-    );
+    const res = await this.groupMessageServices.getGroupMessagesById(id, skip);
 
-    return { id: groupId, messages: res };
+    return { id, messages: res };
   }
 
-  // api/groups/:groupId/messages/:messageId
+  // api/groups/:id/messages/:messageId
   @Delete(':messageId')
   @SkipThrottle()
   async deleteGroupMessageByMessageId(
     @AuthUser() { id: userId }: User,
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Param('messageId', ParseIntPipe) messageId: number,
   ) {
-    const params = { userId, groupId, messageId };
+    const params = { userId, id, messageId };
 
     const message = await this.groupMessageServices.deleteGroupMessage(params);
 
     this.eventEmitter.emit('group.message.delete', { userId, message });
-    return { groupId, messageId };
+    return { id, messageId };
   }
 
-  // api/groups/:groupId/messages/:messageId
+  // api/groups/:id/messages/:messageId
   @Patch('/:messageId')
   @SkipThrottle()
   async editGroupMessageByMessageId(
     @AuthUser() { id: userId }: User,
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Param('messageId', ParseIntPipe) messageId: number,
     @Body() { content }: EditGroupMessageDto,
   ) {
-    const params = { userId, groupId, messageId, content };
+    const params = { userId, id, messageId, content };
 
     const message = await this.groupMessageServices.editMessage(params);
 

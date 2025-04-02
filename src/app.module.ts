@@ -18,6 +18,8 @@ import { ThrottlerBehindProxyGuard } from './utils/throttler';
 import { entities } from './utils/typeorm';
 import { ExistsModule } from './exists/exists.module';
 import { ImageStorageModule } from './image-storage/image-storage.module';
+import { SessionsModule } from './sessions/sessions.module';
+import { MessageAttachmentsModule } from './message-attachments/message-attachments.module';
 
 @Module({
   imports: [
@@ -52,6 +54,8 @@ import { ImageStorageModule } from './image-storage/image-storage.module';
     ExistsModule,
     EventModule,
     ImageStorageModule,
+    SessionsModule,
+    MessageAttachmentsModule,
   ],
   controllers: [],
   providers: [

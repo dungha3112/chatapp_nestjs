@@ -9,6 +9,8 @@ import { User } from './entities/User';
 import { Friend } from './entities/Friend';
 import { FriendRequest } from './entities/FriendRequest';
 import { Profile } from './entities/Profile';
+import { MessageAttachment } from './entities/MessageAttachment';
+import { GroupMessageAttachment } from './entities/GroupMessageAttachment';
 dotenv.config();
 
 export const entities = [
@@ -21,6 +23,8 @@ export const entities = [
   FriendRequest,
   Friend,
   Profile,
+  MessageAttachment,
+  GroupMessageAttachment,
 ];
 
 export const AppDataSource = new DataSource({
@@ -44,4 +48,6 @@ export {
   Friend,
   FriendRequest,
   Profile,
+  MessageAttachment,
+  GroupMessageAttachment,
 };

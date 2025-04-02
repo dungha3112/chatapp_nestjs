@@ -32,7 +32,7 @@ async function bootstrap() {
       secret: COOKIE_SECRET,
       saveUninitialized: false,
       resave: false,
-      cookie: { maxAge: 86400000 * 7 },
+      cookie: { maxAge: 86400000 },
       name: 'CHAT_APP_SESSION_ID',
       store: new TypeormStore().connect(sessionRepository),
     }),

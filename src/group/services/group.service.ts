@@ -93,6 +93,7 @@ export class GroupService implements IGroupServices {
         'owner',
         'users',
         'lastMessageSent.author',
+        'users.profile',
       ],
     });
     return group;
@@ -124,9 +125,9 @@ export class GroupService implements IGroupServices {
   }
 
   async hasAccess(params: AccessGroupParams): Promise<User> {
-    const { groupId, userId } = params;
+    const { id, userId } = params;
 
-    const group = await this.findGroupById(groupId);
+    const group = await this.findGroupById(id);
     if (!group) throw new GroupNotFoundException();
 
     const user = group.users.find((u) => u.id === userId);
@@ -134,9 +135,9 @@ export class GroupService implements IGroupServices {
   }
 
   async updateGroupOwner(params: TranferOwnerParams): Promise<Group> {
-    const { groupId, userId, newOwnerId } = params;
+    const { id, userId, newOwnerId } = params;
 
-    const group = await this.findGroupById(groupId);
+    const group = await this.findGroupById(id);
     if (!group) throw new GroupNotFoundException();
 
     if (group.owner.id !== userId)
@@ -158,7 +159,7 @@ export class GroupService implements IGroupServices {
   }
 
   async userLeaveGroup(params: UserLeaveGroupParams): Promise<Group> {
-    const { groupId, userId } = params;
+    const { id, userId } = params;
 
     const group = await this.isUserInGroup(params);
     if (userId === group.owner.id)
@@ -174,9 +175,9 @@ export class GroupService implements IGroupServices {
   }
 
   async isUserInGroup(params: CheckUserInGroupParams) {
-    const { userId, groupId } = params;
+    const { userId, id } = params;
 
-    const group = await this.findGroupById(groupId);
+    const group = await this.findGroupById(id);
 
     if (!group) throw new GroupNotFoundException();
 

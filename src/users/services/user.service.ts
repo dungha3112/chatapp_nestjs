@@ -59,6 +59,7 @@ export class UserServices implements IuserServices {
     const user = await this.userRepository.findOne({
       where: findUserParams,
       select: options?.selectAll ? selectionsWithPassword : selections,
+      relations: ['profile'],
     });
 
     return user;

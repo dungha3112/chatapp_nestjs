@@ -16,12 +16,12 @@ export class ConversationMiddleware implements NestMiddleware {
     console.log('middleware in conversation...');
 
     const { id: userId } = req.user;
-    const conversationId = parseInt(req.params.conversationId);
+    const id = parseInt(req.params.id);
 
-    if (isNaN(conversationId)) throw new ConversationInvalidException();
+    if (isNaN(id)) throw new ConversationInvalidException();
 
     const isReadable = await this.conversationsServices.hasAccess({
-      conversationId,
+      id,
       userId,
     });
 

@@ -6,7 +6,7 @@ export class Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ default: '' })
+  @Column({ default: '', nullable: true })
   about: string;
 
   @Column({ type: 'simple-json', nullable: true })

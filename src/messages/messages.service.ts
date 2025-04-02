@@ -3,7 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { instanceToPlain } from 'class-transformer';
 import { IConversationsServices } from 'src/conversations/conversations';
 import { Services } from 'src/utils/constants';
-import { Conversation, Message } from 'src/utils/typeorm';
+import { Conversation, Message, MessageAttachment } from 'src/utils/typeorm';
 import {
   CreateMessageParams,
   CreateMessageResponse,
@@ -13,6 +13,8 @@ import {
 import { Repository } from 'typeorm';
 import { IMessageServices } from './messages';
 import { ConversationNotFoundException } from 'src/conversations/exceptions/ConversationNotFound';
+import { IImageStorageService } from 'src/image-storage/image-storage';
+import { IMessageAttachmentsService } from 'src/message-attachments/message-attachments';
 
 @Injectable()
 export class MessagesService implements IMessageServices {
@@ -22,6 +24,9 @@ export class MessagesService implements IMessageServices {
 
     @Inject(Services.CONVERSATIONS)
     private readonly conversationsServices: IConversationsServices,
+
+    @Inject(Services.MESSAGE_ATTACHMENTS)
+    private readonly messageAttachmentsService: IMessageAttachmentsService,
   ) {}
 
   /**
@@ -32,10 +37,9 @@ export class MessagesService implements IMessageServices {
   async createMessage(
     params: CreateMessageParams,
   ): Promise<CreateMessageResponse> {
-    const { user, conversationId, content } = params;
+    const { user, id, content } = params;
 
-    const conversation =
-      await this.conversationsServices.findById(conversationId);
+    const conversation = await this.conversationsServices.findById(id);
     if (!conversation) throw new ConversationNotFoundException();
 
     const { creator, recipient } = conversation;
@@ -46,10 +50,17 @@ export class MessagesService implements IMessageServices {
         HttpStatus.FORBIDDEN,
       );
 
+    const attachments = params.attachments
+      ? await this.messageAttachmentsService.createConversationAttachment(
+          params.attachments,
+        )
+      : [];
+
     const newMessage = this.messageRepository.create({
       author: instanceToPlain(user),
       content,
       conversation,
+      attachments,
     });
 
     const savedMessage = await this.messageRepository.save(newMessage);
@@ -68,20 +79,17 @@ export class MessagesService implements IMessageServices {
   }
 
   /**
-   * // getMessageByConversationId
+   * // getMessageByid
    * @param id
    * @returns
    */
-  async getMessageByConversationId(
-    id: number,
-    skip: number,
-  ): Promise<Message[]> {
+  async getMessageByid(id: number): Promise<Message[]> {
     const conversation = await this.conversationsServices.findById(id);
     if (!conversation) throw new ConversationNotFoundException();
 
     const messages = await this.messageRepository.find({
-      where: { conversation: { id: id } },
-      relations: ['author', 'author.profile'],
+      where: { conversation: { id } },
+      relations: ['author', 'author.profile', 'attachments'],
       order: { createdAt: 'DESC' },
     });
 
@@ -93,16 +101,22 @@ export class MessagesService implements IMessageServices {
    * @param params
    */
   async deleteMessage(params: DeleteMessageParams) {
-    const { conversationId, messageId, userId } = params;
-    const msgParams = { id: conversationId, limit: 5 };
+    const { id, messageId, userId } = params;
+    const msgParams = { id, limit: 5 };
 
     const conversation =
       await this.conversationsServices.getMessages(msgParams);
 
     const message = await this.messageRepository.findOne({
       where: { id: messageId, author: { id: userId } },
-      relations: ['conversation', 'author'],
     });
+
+    // delete attachments message
+    if (message.attachments.length > 0) {
+      await this.messageAttachmentsService.deteleMessageAttachment(
+        message.attachments,
+      );
+    }
 
     if (!message)
       throw new HttpException(
@@ -142,12 +156,12 @@ export class MessagesService implements IMessageServices {
   }
 
   async editMessage(params: EditMessageParams): Promise<Message> {
-    const { content, conversationId, messageId, userId } = params;
+    const { content, id, messageId, userId } = params;
 
     const messageDb = await this.messageRepository.findOne({
       where: {
         id: messageId,
-        conversation: { id: conversationId },
+        conversation: { id },
         author: { id: userId },
       },
       relations: [

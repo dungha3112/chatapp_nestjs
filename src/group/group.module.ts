@@ -29,6 +29,6 @@ import { GroupMiddleware } from './middlewares/group.middleware';
 })
 export class GroupModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(isAuthorized, GroupMiddleware).forRoutes('/groups/:groupId');
+    consumer.apply(isAuthorized, GroupMiddleware).forRoutes('/groups/:id');
   }
 }

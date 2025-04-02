@@ -6,6 +6,7 @@ import {
   Group,
   GroupMessage,
   Message,
+  MessageAttachment,
   User,
 } from './typeorm';
 
@@ -46,11 +47,22 @@ export interface AuthenticatedRequest extends Request {
   user: User;
 }
 
-// Message
+/**
+ * Message
+ */
+
+export interface Attachment extends Express.Multer.File {}
+
+export type UploadMessageAttachmentParams = {
+  file: Attachment;
+  messageAttachment: MessageAttachment;
+};
+
 //CreateMessageParams
 export type CreateMessageParams = {
-  conversationId: number;
+  id: number;
   content?: string;
+  attachments?: Attachment[];
   user: User;
 };
 
@@ -63,7 +75,7 @@ export type CreateMessageResponse = {
 // DeleteMessageParams
 export type DeleteMessageParams = {
   userId: number;
-  conversationId: number;
+  id: number;
   messageId: number;
 };
 
@@ -87,13 +99,13 @@ export type GetConversationMessagesParams = {
 
 //AccessConversationParams
 export type AccessConversationParams = {
-  conversationId: number;
+  id: number;
   userId: number;
 };
 
 // EditMessageParams
 export type EditMessageParams = {
-  conversationId: number;
+  id: number;
   userId: number;
   messageId: number;
   content: string;
@@ -116,13 +128,13 @@ export type CreateGroupParams = {
 
 //AccessGroupParams
 export type AccessGroupParams = {
-  groupId: number;
+  id: number;
   userId: number;
 };
 
 //CreateGroupMessageParams
 export type CreateGroupMessageParams = {
-  groupId: number;
+  id: number;
   content: string;
   user: User;
 };
@@ -136,7 +148,7 @@ export type CreateGroupMessageResponse = {
 // DeleteGroupMessageParams
 export type DeleteGroupMessageParams = {
   userId: number;
-  groupId: number;
+  id: number;
   messageId: number;
 };
 
@@ -160,7 +172,7 @@ export type GetGroupMessagesParams = {
 
 // EditGroupMessageParams
 export type EditGroupMessageParams = {
-  groupId: number;
+  id: number;
   userId: number;
   messageId: number;
   content: string;
@@ -169,7 +181,7 @@ export type EditGroupMessageParams = {
 // AddGroupRecipientParams
 export type AddGroupRecipientParams = {
   ownerId: number;
-  groupId: number;
+  id: number;
   username: string;
 };
 
@@ -182,7 +194,7 @@ export type AddGroupUserResponse = {
 // RemoveGroupRecipientParams
 export type RemoveGroupRecipientParams = {
   ownerId: number;
-  groupId: number;
+  id: number;
   removeUserId: number;
 };
 
@@ -195,20 +207,20 @@ export type RemoveGroupRecipientResponse = {
 // TranferOwnerParams
 export type TranferOwnerParams = {
   userId: number;
-  groupId: number;
+  id: number;
   newOwnerId: number;
 };
 
 //UserLeaveGroupParams
 export type UserLeaveGroupParams = {
   userId: number;
-  groupId: number;
+  id: number;
 };
 
 //CheckUserInGroupParams
 export type CheckUserInGroupParams = {
   userId: number;
-  groupId: number;
+  id: number;
 };
 
 /**

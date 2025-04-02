@@ -31,11 +31,11 @@ export class GroupRecipientsController {
   @Post()
   async addGroupRecipient(
     @AuthUser() { id: ownerId }: User,
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('id', ParseIntPipe) id: number,
 
     @Body() { username }: AddGroupRecipientDto,
   ): Promise<AddGroupUserResponse> {
-    const params = { ownerId, groupId, username };
+    const params = { ownerId, id, username };
 
     const res = await this.groupRecipientsServices.addGroupRecipient(params);
     this.eventEmitter.emit('group.user.add', res);
@@ -44,14 +44,14 @@ export class GroupRecipientsController {
   }
 
   // owner remove user to list group.users
-  // api/groups/:groupId/recipients/:removeUserId
+  // api/groups/:id/recipients/:removeUserId
   @Delete('/:removeUserId')
   async removeGroupRecipient(
     @AuthUser() { id: ownerId }: User,
-    @Param('groupId', ParseIntPipe) groupId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Param('removeUserId', ParseIntPipe) removeUserId: number,
   ): Promise<Group> {
-    const params = { ownerId, groupId, removeUserId };
+    const params = { ownerId, id, removeUserId };
     const res: RemoveGroupRecipientResponse =
       await this.groupRecipientsServices.removeGroupRecipient(params);
 

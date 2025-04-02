@@ -23,6 +23,6 @@ export class ConversationsModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(isAuthorized, ConversationMiddleware)
-      .forRoutes('/conversations/:conversationId');
+      .forRoutes('/conversations/:id');
   }
 }

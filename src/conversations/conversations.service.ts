@@ -41,6 +41,8 @@ export class ConversationsService implements IConversationsServices {
       .leftJoinAndSelect('recipient.profile', 'recipientProfile')
 
       .leftJoinAndSelect('lastMessageSent.author', 'author')
+      .leftJoinAndSelect('lastMessageSent.attachments', 'attachments')
+
       .where('creator.id = :id', { id })
       .orWhere('recipient.id = :id', { id })
       .orderBy('conversation.lastMessageSentAt', 'DESC')
@@ -131,6 +133,7 @@ export class ConversationsService implements IConversationsServices {
         'recipient',
         'lastMessageSent',
         'lastMessageSent.author',
+        'lastMessageSent.attachments',
         'creator.profile',
         'recipient.profile',
       ],
@@ -186,8 +189,8 @@ export class ConversationsService implements IConversationsServices {
   }
 
   async hasAccess(params: AccessConversationParams) {
-    const { conversationId, userId } = params;
-    const conversation = await this.findById(conversationId);
+    const { id, userId } = params;
+    const conversation = await this.findById(id);
 
     if (!conversation) throw new ConversationNotFoundException();
 

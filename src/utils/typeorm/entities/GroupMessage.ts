@@ -4,11 +4,13 @@ import {
   Entity,
   JoinColumn,
   ManyToOne,
+  OneToMany,
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
 import { User } from './User';
 import { Group } from './Group';
+import { GroupMessageAttachment } from './GroupMessageAttachment';
 
 // import BaseMessage from './BaseMessage';
 abstract class BaseMessage {
@@ -30,4 +32,8 @@ abstract class BaseMessage {
 export class GroupMessage extends BaseMessage {
   @ManyToOne(() => Group, (group) => group.messages)
   group: Group;
+
+  @OneToMany(() => GroupMessageAttachment, (attachment) => attachment.message)
+  @JoinColumn()
+  attachments: GroupMessageAttachment[];
 }

@@ -4,5 +4,5 @@ export class UserProfileUpdateDto {
   @IsString()
   @MaxLength(200)
   @IsOptional()
-  about?: string;
+  about: string;
 }

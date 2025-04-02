@@ -4,28 +4,32 @@ import {
   DefaultValuePipe,
   Delete,
   Get,
-  HttpStatus,
   Inject,
   Param,
   ParseIntPipe,
   Patch,
   Post,
   Query,
-  Res,
-  UseGuards,
+  UploadedFiles,
+  UseInterceptors,
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
+import { FileFieldsInterceptor } from '@nestjs/platform-express';
 import { SkipThrottle, Throttle } from '@nestjs/throttler';
-import { Response } from 'express';
-import { AuthenticatedGuard } from 'src/auth/utils/Guards';
-import { Routes, Services } from 'src/utils/constants';
+import {
+  MessageAttachmentFileFields,
+  Routes,
+  Services,
+} from 'src/utils/constants';
 import { AuthUser } from 'src/utils/decorators';
 import { Message, User } from 'src/utils/typeorm';
 import { CreateMessageDto } from './dtos/CreateMessageDto';
 import { EditMessageDto } from './dtos/EditMessageDto';
 import { IMessageServices } from './messages';
+import { Attachment } from 'src/utils/types';
+import { EmptyMessageException } from './exceptions/EmptyMessage';
 
-@UseGuards(AuthenticatedGuard)
+// @UseGuards(AuthenticatedGuard)
 @Controller(Routes.MESSAGES)
 export class MessagesController {
   constructor(
@@ -34,58 +38,59 @@ export class MessagesController {
     private readonly eventEmitter: EventEmitter2,
   ) {}
 
-  @Post()
   @Throttle({ default: { limit: 5, ttl: 10 } })
+  @Post()
+  @UseInterceptors(FileFieldsInterceptor(MessageAttachmentFileFields))
   async createMessage(
-    @Res() res: Response,
-    @Param('conversationId', ParseIntPipe) conversationId: number,
     @AuthUser() user: User,
+    @Param('id', ParseIntPipe) id: number,
+    @UploadedFiles() { attachments }: { attachments: Attachment[] },
     @Body() { content }: CreateMessageDto,
   ) {
-    const params = { user, conversationId, content };
+    if (!attachments && !content) throw new EmptyMessageException();
+
+    const params = { user, id, content, attachments };
+
     const response = await this.messageService.createMessage(params);
 
     this.eventEmitter.emit('message.create', response);
-    return res.sendStatus(HttpStatus.OK);
+    return;
   }
 
   @Get()
   @SkipThrottle()
-  async getMessagesByConversationId(
-    @Param('conversationId', ParseIntPipe) conversationId: number,
+  async getMessagesByid(
+    @Param('id', ParseIntPipe) id: number,
     @Query('skip', new DefaultValuePipe(1), ParseIntPipe) skip: number,
   ) {
-    const res = await this.messageService.getMessageByConversationId(
-      conversationId,
-      skip,
-    );
-    return { id: conversationId, messages: res };
+    const res = await this.messageService.getMessageByid(id);
+    return { id, messages: res };
   }
 
-  // api/conversations/:conversationId/messages/:messageId
+  // api/conversations/:id/messages/:messageId
   @Delete('/:messageId')
   async deleteMessageFromConversation(
     @AuthUser() { id: userId }: User,
-    @Param('conversationId', ParseIntPipe) conversationId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Param('messageId', ParseIntPipe) messageId: number,
   ) {
-    const params = { userId, conversationId, messageId };
+    const params = { userId, id, messageId };
     const message = await this.messageService.deleteMessage(params);
 
     this.eventEmitter.emit('message.delete', { userId, message });
 
-    return { conversationId, messageId };
+    return { id, messageId };
   }
 
-  // api/conversations/:conversationId/messages/:messageId
+  // api/conversations/:id/messages/:messageId
   @Patch('/:messageId')
   async editMessage(
     @AuthUser() { id: userId }: User,
-    @Param('conversationId', ParseIntPipe) conversationId: number,
+    @Param('id', ParseIntPipe) id: number,
     @Param('messageId', ParseIntPipe) messageId: number,
     @Body() { content }: EditMessageDto,
   ): Promise<Message> {
-    const params = { userId, conversationId, messageId, content };
+    const params = { userId, id, messageId, content };
 
     const message = await this.messageService.editMessage(params);
 

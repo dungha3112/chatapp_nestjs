@@ -6,10 +6,10 @@ export enum Routes {
   USERS_PROFILES = 'users/profiles',
 
   CONVERSATIONS = 'conversations',
-  MESSAGES = 'conversations/:conversationId/messages',
+  MESSAGES = 'conversations/:id/messages',
   GROUPS = 'groups',
-  GROUPS_MESSAGES = 'groups/:groupId/messages',
-  GROUPS_RECIPIENTS = 'groups/:groupId/recipients',
+  GROUPS_MESSAGES = 'groups/:id/messages',
+  GROUPS_RECIPIENTS = 'groups/:id/recipients',
   FRIENDS = 'friends',
   FRIENDS_REQUESTS = 'friends/requests',
   EXISTS = 'exists',
@@ -22,6 +22,9 @@ export enum Services {
 
   CONVERSATIONS = 'CONVERSATIONS_SERVICE',
   MESSAGES = 'MESSAGES_SERVICE',
+
+  MESSAGE_ATTACHMENTS = 'MESSAGE_ATTACHMENTS_SERVICE',
+
   GATEWAY_SESSION_MANAGER = 'GATEWAY_SESSION_MANAGER',
   GROUPS = 'GROUPS_SERVICE',
   GROUPS_MESSAGES = 'GROUPS_MESSAGES_SERVICE',
@@ -31,6 +34,8 @@ export enum Services {
 
   CLOUDINARY_CLIENT = 'CLOUDINARY_CLIENT',
   IMAGE_UPLOAD_SERVICE = 'IMAGE_UPLOAD_SERVICE',
+
+  SESSION = 'SESSION_SERVICE',
 }
 
 export enum ServerEvents {
@@ -51,4 +56,8 @@ export const UserProfileFileFields: MulterField[] = [
     name: 'avatar',
     maxCount: 1,
   },
+];
+
+export const MessageAttachmentFileFields: MulterField[] = [
+  { name: 'attachments', maxCount: 5 },
 ];

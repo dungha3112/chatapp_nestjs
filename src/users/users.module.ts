@@ -7,9 +7,14 @@ import { UserServices } from './services/user.service';
 import { UserProfilesController } from './controllers/user-profiles.controller';
 import { UserProfileService } from './services/user-prodile.service';
 import { ImageStorageModule } from 'src/image-storage/image-storage.module';
+import { SessionsModule } from 'src/sessions/sessions.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([User, Profile]), ImageStorageModule],
+  imports: [
+    TypeOrmModule.forFeature([User, Profile]),
+    ImageStorageModule,
+    SessionsModule,
+  ],
 
   controllers: [UsersController, UserProfilesController],
 

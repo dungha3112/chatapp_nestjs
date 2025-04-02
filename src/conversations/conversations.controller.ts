@@ -49,10 +49,8 @@ export class ConversationsController {
     return conversations;
   }
 
-  @Get(':conversationId')
-  async findById(
-    @Param('conversationId', ParseIntPipe) conversationId: number,
-  ) {
-    return await this.conversationServices.findById(conversationId);
+  @Get(':id')
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    return await this.conversationServices.findById(id);
   }
 }

@@ -31,9 +31,9 @@ export class GroupMessageServices implements IGroupMessageServices {
   async createGroupMessage(
     params: CreateGroupMessageParams,
   ): Promise<CreateGroupMessageResponse> {
-    const { content, groupId, user } = params;
+    const { content, id, user } = params;
 
-    const group = await this.groupServices.findGroupById(groupId);
+    const group = await this.groupServices.findGroupById(id);
     if (!group) throw new GroupNotFoundException();
 
     const findUser = group.users.find((u) => u.id === user.id);
@@ -42,7 +42,7 @@ export class GroupMessageServices implements IGroupMessageServices {
     const newGroupMessage = this.groupMessageRepository.create({
       author: user,
       content,
-      group: { id: groupId },
+      group: { id },
     });
 
     const saveGroupMessage =
@@ -60,16 +60,16 @@ export class GroupMessageServices implements IGroupMessageServices {
   }
 
   async getGroupMessagesById(
-    groupId: number,
+    id: number,
     skip: number,
   ): Promise<GroupMessage[]> {
-    const group = await this.groupServices.findGroupById(groupId);
+    const group = await this.groupServices.findGroupById(id);
     if (!group) throw new GroupNotFoundException();
 
     if (!skip) return;
 
     const messages = await this.groupMessageRepository.find({
-      where: { group: { id: groupId } },
+      where: { group: { id } },
       relations: ['author', 'author.profile'],
       order: { createdAt: 'DESC' },
     });
@@ -78,8 +78,8 @@ export class GroupMessageServices implements IGroupMessageServices {
   }
 
   async deleteGroupMessage(params: DeleteGroupMessageParams) {
-    const { userId, groupId, messageId } = params;
-    const msgParams = { id: groupId, limit: 5 };
+    const { userId, id, messageId } = params;
+    const msgParams = { id, limit: 5 };
 
     const group = await this.groupServices.getMessages(msgParams);
 
@@ -133,12 +133,12 @@ export class GroupMessageServices implements IGroupMessageServices {
   }
 
   async editMessage(params: EditGroupMessageParams): Promise<GroupMessage> {
-    const { content, groupId, messageId, userId } = params;
+    const { content, id, messageId, userId } = params;
 
     const messageDb = await this.groupMessageRepository.findOne({
       where: {
         id: messageId,
-        group: { id: groupId },
+        group: { id },
         author: { id: userId },
       },
       relations: ['group', 'group.owner', 'group.users', 'author'],

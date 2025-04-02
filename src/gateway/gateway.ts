@@ -79,15 +79,15 @@ export class MessagingGateway
 
   /**
    * user online or offline
-   * MessageBody : {groupId}: number
+   * MessageBody : {id}: number
    */
   @SubscribeMessage('getOnlineGroupUsers')
   async handleGetOnlineGroupUsers(
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    const { groupId } = data;
-    const group = await this.groupServices.findGroupById(parseInt(groupId));
+    const { id } = data;
+    const group = await this.groupServices.findGroupById(parseInt(id));
 
     if (!group) return;
 
@@ -102,7 +102,7 @@ export class MessagingGateway
 
     // client.emit('onlineGroupUsersReceived', { onlineUsers, offlineUsers });
     this.server
-      .to(`group-${groupId}`)
+      .to(`group-${id}`)
       .emit('onlineGroupUsersReceived', { onlineUsers, offlineUsers });
   }
 
@@ -113,25 +113,25 @@ export class MessagingGateway
    */
   // get emit onConversationJoin from client side
   // get emit from ConversationPage.tsx
-  // data  : {conversationId: number}
+  // data  : {id: number}
   @SubscribeMessage('onConversationJoin')
   onConversationJoin(
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    const { conversationId } = data;
+    const { id } = data;
 
     console.log('client.rooms join', client.rooms, 'conversation join', {
       data,
     });
 
-    client.join(`conversation-${conversationId}`);
+    client.join(`conversation-${id}`);
 
-    client.to(`conversation-${conversationId}`).emit('userConversationJoin');
+    client.to(`conversation-${id}`).emit('userConversationJoin');
   }
 
   // get emit onConversationLeave from client side
-  // data  : {conversationId: number}
+  // data  : {id: number}
   @SubscribeMessage('onConversationLeave')
   onConversationLeave(
     @MessageBody() data: any,
@@ -139,9 +139,9 @@ export class MessagingGateway
   ) {
     console.log('client.rooms leave', client.rooms);
 
-    client.leave(`conversation-${data.conversationId}`);
+    client.leave(`conversation-${data.id}`);
 
-    client.to(`conversation-${data.conversationId}`).emit('userLeave');
+    client.to(`conversation-${data.id}`).emit('userLeave');
   }
 
   /**
@@ -150,25 +150,25 @@ export class MessagingGateway
    * --------------------------------------------------------------------------------------------
    */
   // get emit onTypingStart from client side
-  // data  : {conversationId: number}
+  // data  : {id: number}
   @SubscribeMessage('onTypingStart')
   onTypingStart(
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    const { conversationId } = data;
-    console.log('onTypingStart ----', { conversationId });
+    const { id } = data;
+    console.log('onTypingStart ----', { id });
 
-    client.to(`conversation-${conversationId}`).emit('onTypingStart', {
-      conversationId,
+    client.to(`conversation-${id}`).emit('onTypingStart', {
+      id,
       user: {
         id: client.user.id,
         firstName: client.user.firstName,
         lastName: client.user.lastName,
       },
     });
-    this.server.to(`conversation-${conversationId}`).emit('onTypingStart', {
-      conversationId,
+    this.server.to(`conversation-${id}`).emit('onTypingStart', {
+      id,
       user: {
         id: client.user.id,
         firstName: client.user.firstName,
@@ -178,26 +178,26 @@ export class MessagingGateway
   }
 
   // get emit onTypingStop from client side
-  // data  : {conversationId: number}
+  // data  : {id: number}
   @SubscribeMessage('onTypingStop')
   onTypingStop(
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    const { conversationId } = data;
+    const { id } = data;
 
-    console.log(' ---- onTypingStop ----', { conversationId });
+    console.log(' ---- onTypingStop ----', { id });
 
-    client.to(`conversation-${conversationId}`).emit('onTypingStop', {
-      conversationId,
+    client.to(`conversation-${id}`).emit('onTypingStop', {
+      id,
       user: {
         id: client.user.id,
         firstName: client.user.firstName,
         lastName: client.user.lastName,
       },
     });
-    this.server.to(`conversation-${conversationId}`).emit('onTypingStop', {
-      conversationId,
+    this.server.to(`conversation-${id}`).emit('onTypingStop', {
+      id,
       user: {
         id: client.user.id,
         firstName: client.user.firstName,
@@ -284,7 +284,7 @@ export class MessagingGateway
    * @param client
    */
   // get emit onGroupJoin from client side
-  // data  : {groupId: number}
+  // data  : {id: number}
   @SubscribeMessage('onGroupJoin')
   onGroupJoin(
     @MessageBody() data: any,
@@ -292,21 +292,21 @@ export class MessagingGateway
   ) {
     console.log(`onGroupJoin join`, { data });
 
-    client.join(`group-${data.groupId}`);
+    client.join(`group-${data.id}`);
     console.log('group join', client.rooms);
 
-    client.to(`group-${data.groupId}`).emit('userGroupJoin');
+    client.to(`group-${data.id}`).emit('userGroupJoin');
   }
 
   // get emit onGroupLeave from client side
-  // data  : {groupId: number}
+  // data  : {id: number}
   @SubscribeMessage('onGroupLeave')
   onGroupLeave(
     @MessageBody() data: any,
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
-    client.leave(`group-${data.groupId}`);
-    client.to(`group-${data.groupId}`).emit('userLeave');
+    client.leave(`group-${data.id}`);
+    client.to(`group-${data.id}`).emit('userLeave');
   }
 
   // get socket emit group.create from group.controoler
@@ -393,10 +393,7 @@ export class MessagingGateway
     const ROM_NAME = `group-${group.id}`;
     const removedUserSocket = this.sessions.getUserSocket(user.id);
 
-    await this.handleGetOnlineGroupUsers(
-      { groupId: group.id },
-      removedUserSocket,
-    );
+    await this.handleGetOnlineGroupUsers({ id: group.id }, removedUserSocket);
     this.server.to(ROM_NAME).emit('onGroupRecipientRemoved', group);
 
     if (removedUserSocket) {
@@ -433,7 +430,7 @@ export class MessagingGateway
       return leftUserSocket.emit('onGroupParticipantLeft', payload);
     }
 
-    await this.handleGetOnlineGroupUsers({ groupId: group.id }, leftUserSocket);
+    await this.handleGetOnlineGroupUsers({ id: group.id }, leftUserSocket);
   }
 
   // get from client

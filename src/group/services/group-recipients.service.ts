@@ -27,8 +27,8 @@ export class GroupRecipientsServices implements IGroupRecipientsServices {
   async addGroupRecipient(
     params: AddGroupRecipientParams,
   ): Promise<AddGroupUserResponse> {
-    const { username, ownerId, groupId } = params;
-    const group = await this.groupServices.findGroupById(groupId);
+    const { username, ownerId, id } = params;
+    const group = await this.groupServices.findGroupById(id);
     if (!group) throw new GroupNotFoundException();
 
     if (group.owner.id !== ownerId) throw new NotGroupOwnerException();
@@ -53,9 +53,9 @@ export class GroupRecipientsServices implements IGroupRecipientsServices {
   async removeGroupRecipient(
     params: RemoveGroupRecipientParams,
   ): Promise<RemoveGroupRecipientResponse> {
-    const { groupId, ownerId, removeUserId } = params;
+    const { id, ownerId, removeUserId } = params;
 
-    const group = await this.groupServices.findGroupById(groupId);
+    const group = await this.groupServices.findGroupById(id);
     if (!group) throw new GroupNotFoundException();
 
     const userToBeRemoved = await this.userServices.findUser({

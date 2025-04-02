@@ -43,11 +43,26 @@ export class UserProfileService implements IUserProfile {
     return await this.updateProfile(user, params);
   }
 
-  async updateProfile(user: User, params: UpdateUserProfileParams) {
+  async updateProfile(
+    user: User,
+    params: UpdateUserProfileParams,
+  ): Promise<User> {
     const { about, avatar, banner } = params;
 
     if (about) {
       user.profile.about = about;
+    }
+
+    if (avatar && user.profile.avatar.secure_url) {
+      await this.imageStorageService.removeImageByPublicId(
+        user.profile.avatar.secure_url,
+      );
+    }
+
+    if (banner && user.profile.banner.secure_url) {
+      await this.imageStorageService.removeImageByPublicId(
+        user.profile.banner.secure_url,
+      );
     }
 
     if (avatar) {

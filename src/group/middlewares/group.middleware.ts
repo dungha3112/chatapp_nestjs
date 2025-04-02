@@ -15,10 +15,10 @@ export class GroupMiddleware implements NestMiddleware {
     console.log('... middleware in group...');
     const { id: userId } = req.user;
 
-    const groupId = parseInt(req.params.groupId);
-    if (isNaN(groupId)) throw new GroupInvalidException();
+    const id = parseInt(req.params.id);
+    if (isNaN(id)) throw new GroupInvalidException();
 
-    const params = { userId, groupId };
+    const params = { userId, id };
     const user = await this.groupServices.hasAccess(params);
 
     if (user) {
