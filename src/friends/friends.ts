@@ -9,4 +9,6 @@ export interface IFriendsServices {
   findById(id: number): Promise<Friend | undefined>;
 
   deleteFriend(params: DeleteFriendRequestParams): Promise<Friend>;
+
+  searchUsers(query: string): Promise<Friend[]>;
 }

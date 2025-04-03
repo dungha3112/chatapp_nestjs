@@ -13,6 +13,8 @@ import { Repository } from 'typeorm';
 import { IConversationsServices } from './conversations';
 import { ConversationAlreadlyExists } from './exceptions/ConversationAlreadyExists';
 import { ConversationNotFoundException } from './exceptions/ConversationNotFound';
+import { IFriendsServices } from 'src/friends/friends';
+import { FriendNotFoundException } from 'src/friends/exceptions/FriendNotFound';
 
 @Injectable()
 export class ConversationsService implements IConversationsServices {
@@ -22,6 +24,8 @@ export class ConversationsService implements IConversationsServices {
 
     @InjectRepository(Message)
     private readonly messageRepository: Repository<Message>,
+
+    @Inject(Services.FRIENDS) private readonly friendServices: IFriendsServices,
 
     @Inject(Services.USERS) private readonly userServices: IuserServices,
   ) {}
@@ -81,6 +85,12 @@ export class ConversationsService implements IConversationsServices {
     const existsConversation = await this.isCreated(creator.id, recipient.id);
 
     if (existsConversation) throw new ConversationAlreadlyExists();
+
+    const isFriend = await this.friendServices.isFriend(
+      creator.id,
+      recipient.id,
+    );
+    if (!isFriend) throw new FriendNotFoundException();
 
     const newConversation = this.conversationRepository.create({
       creator,

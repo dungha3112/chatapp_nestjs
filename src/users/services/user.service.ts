@@ -76,13 +76,13 @@ export class UserServices implements IuserServices {
     return this.userRepository
       .createQueryBuilder('user')
       .where(statement, { query: `%${query}%` })
+      .leftJoinAndSelect('user.profile', 'profile')
       .limit(10)
       .addSelect([
         'user.lastName',
         'user.firstName',
         'user.username',
         'user.id',
-        'user.profile',
       ])
       .getMany();
   }

@@ -15,6 +15,8 @@ import { IMessageServices } from './messages';
 import { ConversationNotFoundException } from 'src/conversations/exceptions/ConversationNotFound';
 import { IImageStorageService } from 'src/image-storage/image-storage';
 import { IMessageAttachmentsService } from 'src/message-attachments/message-attachments';
+import { IFriendsServices } from 'src/friends/friends';
+import { FriendNotFoundException } from 'src/friends/exceptions/FriendNotFound';
 
 @Injectable()
 export class MessagesService implements IMessageServices {
@@ -27,6 +29,8 @@ export class MessagesService implements IMessageServices {
 
     @Inject(Services.MESSAGE_ATTACHMENTS)
     private readonly messageAttachmentsService: IMessageAttachmentsService,
+
+    @Inject(Services.FRIENDS) private readonly friendServices: IFriendsServices,
   ) {}
 
   /**
@@ -49,6 +53,12 @@ export class MessagesService implements IMessageServices {
         'You are neither creator nor recipient of the conversation',
         HttpStatus.FORBIDDEN,
       );
+
+    const isFriend = await this.friendServices.isFriend(
+      creator.id,
+      recipient.id,
+    );
+    if (!isFriend) throw new FriendNotFoundException();
 
     const attachments = params.attachments
       ? await this.messageAttachmentsService.createConversationAttachment(

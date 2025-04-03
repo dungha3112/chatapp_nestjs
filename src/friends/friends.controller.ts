@@ -2,9 +2,13 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
+  HttpStatus,
   Inject,
   Param,
   ParseIntPipe,
+  Query,
+  UseGuards,
 } from '@nestjs/common';
 import { Routes, ServerEvents, Services } from 'src/utils/constants';
 import { IFriendsServices } from './friends';
@@ -12,6 +16,7 @@ import { AuthUser } from 'src/utils/decorators';
 import { Friend, User } from 'src/utils/typeorm';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { SkipThrottle } from '@nestjs/throttler';
+import { AuthenticatedGuard } from 'src/auth/utils/Guards';
 
 @SkipThrottle()
 @Controller(Routes.FRIENDS)
@@ -25,6 +30,15 @@ export class FriendsController {
   @Get()
   async getFriends(@AuthUser() user: User) {
     return await this.friendServices.getFriends(user.id);
+  }
+
+  @Get('search')
+  @UseGuards(AuthenticatedGuard)
+  searchUsers(@Query('query') query: string) {
+    if (!query)
+      throw new HttpException('Provide a valid query', HttpStatus.BAD_REQUEST);
+
+    return this.friendServices.searchUsers(query);
   }
 
   @Delete(':id/delete')

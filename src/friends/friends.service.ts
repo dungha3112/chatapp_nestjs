@@ -1,13 +1,11 @@
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Friend, FriendRequest } from 'src/utils/typeorm';
-import { Repository } from 'typeorm';
-import { IFriendsServices } from './friends';
 import { DeleteFriendRequestParams } from 'src/utils/types';
-import { FriendNotFoundException } from './exceptions/FriendNotFound';
+import { Repository } from 'typeorm';
 import { DeleteFriendException } from './exceptions/DeleteFriend';
-import { Services } from 'src/utils/constants';
-import { IFriendRequestServices } from 'src/friend-requests/friend-requests';
+import { FriendNotFoundException } from './exceptions/FriendNotFound';
+import { IFriendsServices } from './friends';
 
 @Injectable()
 export class FriendsServices implements IFriendsServices {
@@ -43,6 +41,30 @@ export class FriendsServices implements IFriendsServices {
       where: { id },
       relations: ['sender', 'receiver'],
     });
+  }
+
+  async searchUsers(query: string): Promise<Friend[]> {
+    const statement =
+      '(sender.firstName LIKE :query OR sender.username LIKE :query OR sender.lastName LIKE :query ' +
+      'OR receiver.firstName LIKE :query OR receiver.username LIKE :query OR receiver.lastName LIKE :query)';
+
+    return this.friendRepository
+      .createQueryBuilder('friend')
+      .leftJoinAndSelect('friend.sender', 'sender')
+      .leftJoinAndSelect('friend.receiver', 'receiver')
+      .where(statement, { query: `%${query}%` })
+      .limit(10)
+      .addSelect([
+        'sender.firstName',
+        'sender.lastName',
+        'sender.username',
+        'sender.id',
+        'receiver.firstName',
+        'receiver.lastName',
+        'receiver.username',
+        'receiver.id',
+      ])
+      .getMany();
   }
 
   async deleteFriend(params: DeleteFriendRequestParams): Promise<Friend> {
