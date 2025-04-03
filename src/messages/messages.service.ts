@@ -109,6 +109,7 @@ export class MessagesService implements IMessageServices {
 
     const message = await this.messageRepository.findOne({
       where: { id: messageId, author: { id: userId } },
+      relations: ['attachments', 'conversation'],
     });
 
     // delete attachments message

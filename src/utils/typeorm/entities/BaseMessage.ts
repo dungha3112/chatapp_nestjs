@@ -4,9 +4,11 @@ import {
   PrimaryGeneratedColumn,
   OneToOne,
   JoinColumn,
+  Entity,
 } from 'typeorm';
 import { User } from './User';
 
+@Entity()
 abstract class BaseMessage {
   @PrimaryGeneratedColumn()
   id: number;

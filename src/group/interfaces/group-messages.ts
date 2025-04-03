@@ -1,6 +1,6 @@
 import { GroupMessage } from 'src/utils/typeorm';
 import {
-  CreateGroupMessageParams,
+  CreateMessageParams,
   CreateGroupMessageResponse,
   DeleteGroupMessageParams,
   EditGroupMessageParams,
@@ -8,7 +8,7 @@ import {
 
 export interface IGroupMessageServices {
   createGroupMessage(
-    params: CreateGroupMessageParams,
+    params: CreateMessageParams,
   ): Promise<CreateGroupMessageResponse>;
 
   getGroupMessagesById(id: number, skip: number): Promise<GroupMessage[]>;

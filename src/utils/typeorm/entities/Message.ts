@@ -1,37 +1,7 @@
-import {
-  Column,
-  CreateDateColumn,
-  Entity,
-  JoinColumn,
-  ManyToOne,
-  OneToMany,
-  OneToOne,
-  PrimaryGeneratedColumn,
-} from 'typeorm';
-import { Conversation } from './Conversation';
-import { User } from './User';
+import { Entity, JoinColumn, ManyToOne, OneToMany } from 'typeorm';
 import BaseMessage from './BaseMessage';
+import { Conversation } from './Conversation';
 import { MessageAttachment } from './MessageAttachment';
-
-/**
- * Message can not extends BaseMessage
- * Error message: Class extends value undefined is not a constructor or null
- */
-
-// abstract class BaseMessage {
-//   @PrimaryGeneratedColumn()
-//   id: number;
-
-//   @Column('text', { nullable: true })
-//   content: string;
-
-//   @CreateDateColumn({ name: 'created_at' })
-//   createdAt: number;
-
-//   @OneToOne(() => User, { createForeignKeyConstraints: false })
-//   @JoinColumn()
-//   author: User;
-// }
 
 @Entity({ name: 'messages' })
 export class Message extends BaseMessage {

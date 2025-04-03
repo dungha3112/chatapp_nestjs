@@ -132,13 +132,6 @@ export type AccessGroupParams = {
   userId: number;
 };
 
-//CreateGroupMessageParams
-export type CreateGroupMessageParams = {
-  id: number;
-  content: string;
-  user: User;
-};
-
 // CreateGroupMessageResponse
 export type CreateGroupMessageResponse = {
   message: GroupMessage;

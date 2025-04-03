@@ -83,4 +83,13 @@ export class UserProfileService implements IUserProfile {
   async updateBanner(file: Express.Multer.File): Promise<UploadImageResponse> {
     return await this.imageStorageService.upload(file);
   }
+
+  async findById(id: number): Promise<Profile> {
+    const user = await this.userRepository.findOne({
+      where: { id },
+      relations: ['profile'],
+    });
+
+    return user.profile;
+  }
 }

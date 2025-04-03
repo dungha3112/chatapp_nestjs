@@ -1,7 +1,10 @@
 import {
   Body,
   Controller,
+  Get,
   Inject,
+  Param,
+  ParseIntPipe,
   Patch,
   Req,
   UploadedFiles,
@@ -31,6 +34,12 @@ export class UserProfilesController {
     @Inject(Services.SESSION)
     private readonly sessionService: ISessionServices,
   ) {}
+
+  @UseGuards(AuthenticatedGuard)
+  @Get(':id')
+  async findById(@Param('id', ParseIntPipe) id: number) {
+    return await this.userProfileService.findById(id);
+  }
 
   @UseGuards(AuthenticatedGuard)
   @Patch()

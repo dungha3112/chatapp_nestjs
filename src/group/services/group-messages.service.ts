@@ -1,18 +1,19 @@
 import { InjectRepository } from '@nestjs/typeorm';
-import { Group, GroupMessage } from 'src/utils/typeorm';
+import { Group, GroupMessage, GroupMessageAttachment } from 'src/utils/typeorm';
 import {
-  CreateGroupMessageParams,
+  CreateMessageParams,
   CreateGroupMessageResponse,
   DeleteGroupMessageParams,
   EditGroupMessageParams,
 } from 'src/utils/types';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { IGroupMessageServices } from '../interfaces/group-messages';
 import { HttpException, HttpStatus, Inject, Injectable } from '@nestjs/common';
 import { Services } from 'src/utils/constants';
 import { IGroupServices } from '../interfaces/group';
 import { GroupNotFoundException } from '../exceptions/GroupNotFound';
 import { UserNotFoundException } from 'src/users/exceptions/UserNotFound';
+import { IMessageAttachmentsService } from 'src/message-attachments/message-attachments';
 
 @Injectable()
 export class GroupMessageServices implements IGroupMessageServices {
@@ -21,6 +22,8 @@ export class GroupMessageServices implements IGroupMessageServices {
     private readonly groupMessageRepository: Repository<GroupMessage>,
 
     @Inject(Services.GROUPS) private readonly groupServices: IGroupServices,
+    @Inject(Services.MESSAGE_ATTACHMENTS)
+    private readonly messageAttachmentsService: IMessageAttachmentsService,
   ) {}
 
   /**
@@ -29,7 +32,7 @@ export class GroupMessageServices implements IGroupMessageServices {
    * @returns
    */
   async createGroupMessage(
-    params: CreateGroupMessageParams,
+    params: CreateMessageParams,
   ): Promise<CreateGroupMessageResponse> {
     const { content, id, user } = params;
 
@@ -39,10 +42,17 @@ export class GroupMessageServices implements IGroupMessageServices {
     const findUser = group.users.find((u) => u.id === user.id);
     if (!findUser) throw new UserNotFoundException();
 
+    const attachments = params.attachments
+      ? await this.messageAttachmentsService.createGroupAttachment(
+          params.attachments,
+        )
+      : [];
+
     const newGroupMessage = this.groupMessageRepository.create({
       author: user,
       content,
       group: { id },
+      attachments,
     });
 
     const saveGroupMessage =
@@ -88,7 +98,7 @@ export class GroupMessageServices implements IGroupMessageServices {
         id: messageId,
         author: { id: userId },
       },
-      relations: ['group', 'author'],
+      relations: ['group', 'author', 'attachments'],
     });
 
     if (!message)
@@ -96,6 +106,13 @@ export class GroupMessageServices implements IGroupMessageServices {
         'Message not found or you can not delete',
         HttpStatus.BAD_REQUEST,
       );
+
+    // delete attachments message
+    if (message.attachments.length > 0) {
+      await this.messageAttachmentsService.deteleGroupMessageAttachment(
+        message.attachments,
+      );
+    }
 
     if (group.lastMessageSent.id !== message.id) {
       await this.groupMessageRepository.delete({ id: messageId });

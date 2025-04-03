@@ -1,6 +1,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { IMessageAttachmentsService } from './message-attachments';
-import { MessageAttachment } from 'src/utils/typeorm';
+import { GroupMessageAttachment, MessageAttachment } from 'src/utils/typeorm';
 import { Attachment } from 'src/utils/types';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,6 +12,9 @@ export class MessageAttachmentsService implements IMessageAttachmentsService {
   constructor(
     @InjectRepository(MessageAttachment)
     private readonly attachmentRepository: Repository<MessageAttachment>,
+
+    @InjectRepository(GroupMessageAttachment)
+    private readonly groupAttachmentRepository: Repository<GroupMessageAttachment>,
 
     @Inject(Services.IMAGE_UPLOAD_SERVICE)
     private readonly imageUploadService: IImageStorageService,
@@ -38,6 +41,40 @@ export class MessageAttachmentsService implements IMessageAttachmentsService {
   }
 
   async deteleMessageAttachment(messageAttachments: MessageAttachment[]) {
+    const promise = messageAttachments.map(async (messageAttachment) => {
+      if (messageAttachment) {
+        await this.imageUploadService.removeImageByPublicId(
+          messageAttachment.public_id,
+        );
+      }
+    });
+
+    return Promise.all(promise);
+  }
+
+  async createGroupAttachment(
+    attachments: Attachment[],
+  ): Promise<GroupMessageAttachment[]> {
+    const promise = attachments.map(async (attachment) => {
+      const res = await this.imageUploadService.upload(attachment);
+
+      const newAttachment = this.groupAttachmentRepository.create({
+        public_id: res.public_id,
+        secure_url: res.secure_url,
+        type: attachment.mimetype,
+      });
+      const messageAttachment =
+        await this.groupAttachmentRepository.save(newAttachment);
+
+      return messageAttachment;
+    });
+
+    return Promise.all(promise);
+  }
+
+  async deteleGroupMessageAttachment(
+    messageAttachments: GroupMessageAttachment[],
+  ) {
     const promise = messageAttachments.map(async (messageAttachment) => {
       if (messageAttachment) {
         await this.imageUploadService.removeImageByPublicId(

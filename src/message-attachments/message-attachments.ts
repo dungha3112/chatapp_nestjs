@@ -1,4 +1,4 @@
-import { MessageAttachment } from 'src/utils/typeorm';
+import { GroupMessageAttachment, MessageAttachment } from 'src/utils/typeorm';
 import { Attachment } from 'src/utils/types';
 
 export interface IMessageAttachmentsService {
@@ -6,5 +6,11 @@ export interface IMessageAttachmentsService {
     attachments: Attachment[],
   ): Promise<MessageAttachment[]>;
 
+  createGroupAttachment(
+    attachments: Attachment[],
+  ): Promise<GroupMessageAttachment[]>;
+
   deteleMessageAttachment(messageAttachments: MessageAttachment[]);
+
+  deteleGroupMessageAttachment(messageAttachments: GroupMessageAttachment[]);
 }

@@ -8,9 +8,9 @@ import {
   OneToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { User } from './User';
 import { Group } from './Group';
 import { GroupMessageAttachment } from './GroupMessageAttachment';
+import { User } from './User';
 
 // import BaseMessage from './BaseMessage';
 abstract class BaseMessage {
@@ -35,5 +35,5 @@ export class GroupMessage extends BaseMessage {
 
   @OneToMany(() => GroupMessageAttachment, (attachment) => attachment.message)
   @JoinColumn()
-  attachments: GroupMessageAttachment[];
+  attachments?: GroupMessageAttachment[];
 }
