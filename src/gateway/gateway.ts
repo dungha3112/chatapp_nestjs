@@ -65,10 +65,13 @@ export class MessagingGateway
     console.log('disconnected ...');
     console.log(`${socket.user.username} disconnected.`);
     socket.rooms.forEach((room) => {
+      console.log({ room });
+
       if (room !== socket.id) {
         socket.leave(room);
       }
     });
+
     this.sessions.removeUserSocket(socket.user.id);
   }
 
@@ -133,8 +136,8 @@ export class MessagingGateway
   // get emit onConversationLeave from client side
   // data  : {id: number}
   @SubscribeMessage('onConversationLeave')
-  onConversationLeave(
-    @MessageBody() data: any,
+  async onConversationLeave(
+    @MessageBody() data: { id: number },
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
     console.log('client.rooms leave', client.rooms);
@@ -152,58 +155,60 @@ export class MessagingGateway
   // get emit onTypingStart from client side
   // data  : {id: number}
   @SubscribeMessage('onTypingStart')
-  onTypingStart(
-    @MessageBody() data: any,
+  async onTypingStart(
+    @MessageBody() data: { id: number },
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
     const { id } = data;
-    console.log('onTypingStart ----', { id });
+    console.log('on Typing Start ----', { id, userId: client.user.id });
 
-    client.to(`conversation-${id}`).emit('onTypingStart', {
-      id,
-      user: {
-        id: client.user.id,
-        firstName: client.user.firstName,
-        lastName: client.user.lastName,
-      },
-    });
-    this.server.to(`conversation-${id}`).emit('onTypingStart', {
-      id,
-      user: {
-        id: client.user.id,
-        firstName: client.user.firstName,
-        lastName: client.user.lastName,
-      },
-    });
+    // client
+    //   .to(`conversation-${id}`)
+    //   .emit('onTypingStart', { id, user: client.user });
+
+    const conversation = await this.conversationServices.findById(id);
+    if (!conversation) return;
+
+    const { creator, recipient } = conversation;
+
+    const recipientId =
+      creator.id === client.user.id ? recipient.id : creator.id;
+    console.log({ recipientId });
+
+    const recipientSocket = this.sessions.getUserSocket(recipientId);
+
+    recipientSocket &&
+      recipientSocket.emit('onTypingStart', { id, user: client.user });
   }
 
   // get emit onTypingStop from client side
   // data  : {id: number}
   @SubscribeMessage('onTypingStop')
-  onTypingStop(
-    @MessageBody() data: any,
+  async onTypingStop(
+    @MessageBody() data: { id: number },
     @ConnectedSocket() client: AuthenticatedSocket,
   ) {
     const { id } = data;
 
-    console.log(' ---- onTypingStop ----', { id });
+    console.log(' ---- onTypingStop ----', { id, userId: client.user.id });
 
-    client.to(`conversation-${id}`).emit('onTypingStop', {
-      id,
-      user: {
-        id: client.user.id,
-        firstName: client.user.firstName,
-        lastName: client.user.lastName,
-      },
-    });
-    this.server.to(`conversation-${id}`).emit('onTypingStop', {
-      id,
-      user: {
-        id: client.user.id,
-        firstName: client.user.firstName,
-        lastName: client.user.lastName,
-      },
-    });
+    // client
+    //   .to(`conversation-${id}`)
+    //   .emit('onTypingStop', { id, user: client.user });
+
+    const conversation = await this.conversationServices.findById(id);
+    if (!conversation) return;
+
+    const { creator, recipient } = conversation;
+
+    const recipientId =
+      creator.id === client.user.id ? recipient.id : creator.id;
+    console.log({ recipientId });
+
+    const recipientSocket = this.sessions.getUserSocket(recipientId);
+
+    recipientSocket &&
+      recipientSocket.emit('onTypingStop', { id, user: client.user });
   }
 
   // get socket emit conversation.create from convesations.controller
